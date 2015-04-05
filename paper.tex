@@ -111,19 +111,20 @@
 \section{Preliminaries}
 \label{sec:pre}
 Let $B(c,r)$ denote a ball with center $c$ and radius $r$. We denote by $pq$ the straight line segment between these two points and by $\card{pq}$ the length of this segment. 
-%kiana: tarife delta ro chanja didam nagofte budan! benazaram ma ham mitunim nagim, baz age fek mikonin lazeme tarif konam:
-% Define $\delta$ of two balls B(c,r) and B'(c',r'), the minimum distance between $B$ and $B'$ which is equal to $\card{cc'}-r-r'$.
+%kiana: tarife delta ro chanja didam nagofte budan! benazaram ma ham mitunim nagim, baz age fek mikonin lazeme tarif konam
+%Behnam: be nazaram alan bashe behtare, age doctor khast hazf mikone
+Define $\delta$ of two balls $B(c,r)$ and $B'(c',r')$, the minimum distance between $B$ and $B'$ which is equal to $\card{cc'}-r-r'$.
 
-Let $B_1^*(c_{2,1}^*, r_2^*)$ and $B_2^*(c_{2,2}^*, r_2^*)$ denote the optimal solution to $2$-center problem with $z$ outliers. By $\delta^*$ we denote the distance between $B_1^*$ and $B_2^*$, that is, $\delta^* = \max (0, \card{c_1^*c_2^*} − 2r^*)$. 
+Let $B_{2,1}^*(c_{2,1}^*, r_2^*)$ and $B_{2,2}^*(c_{2,2}^*, r_2^*)$ denote the optimal solution to $2$-center problem with $z$ outliers. By $\delta^*$ we denote the distance between $B_{2,1}^*$ and $B_{2,2}^*$, that is, $\delta^* = \max (0, \card{c_1^*c_2^*} - 2r^*)$. 
 
 Two congruent balls $B_1$ and $B_2$ with radius $r$ are said to be \emph{$C$-separated}, whenever the distance $\delta$ of two balls is at least $Cr$.
-
 
 %Let $\mathcal{P}$ be a configuration of $n$ point in $d$-dimensional Euclidean space. A point $c_p$, not necessarily in $\mathcal{P}$, is a \emph{centerpoint} of $\mathcal{P}$, if no open half-space that omits $c_p$ contains more than $\frac{dn}{d+1}$ points of $\mathcal{P}$.
 
 % kiana: man be nazaram in tarif painie vase center point behtare
+% Behnam: bahat moafegham
 
-Given an $n$-point set $\mathcal{P}$ in $d$ dimensions, a point $c \in R^d$ is called a \emph{centerpoint} of $\mathcal{P}$ if any halfspace containing $c$ contains at least $\ceil{\frac{n}{(d + 1}}e$ points of $\mathcal{P}$. In other words, any halfspace (or convex set) that avoids a centerpoint can contain at most $\floor{\frac{dn}{d + 1}}$ points of $\mathcal{P}$.
+Given an $n$-point set $\mathcal{P}$ in $d$ dimensions, a point $c \in R^d$ is called a \emph{centerpoint} of $\mathcal{P}$ if any halfspace containing $c$ contains at least $\ceil{\frac{n}{d + 1}}$ points of $\mathcal{P}$. In other words, any halfspace (or convex set) that avoids a centerpoint can contain at most $\floor{\frac{dn}{d + 1}}$ points of $\mathcal{P}$.
 
 
 %-------------------------- 1-center ---------------------------------
@@ -160,7 +161,7 @@ Given an $n$-point set $\mathcal{P}$ in $d$ dimensions, a point $c \in R^d$ is c
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
-Function \textproc{KnownPoint} in Algorithm~\ref{alg:1center}, takes a point $p$ as an argument which is guaranteed to be a non-outlier point in the optimal solution. To overcome the lack of knowledge such a point, function \textproc{$1$-centerWithOutliers} tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and generates a ball for each, using function \textproc{KnownPoint}. It returns the ball with the minimum radius. Note that, due to space limitations inherent to streaming data model, the body of for-all loop in function \textproc{$1$-centerWithOutliers} is run in parallel.
+Function \textproc{KnownPoint} in Algorithm~\ref{alg:1center}, takes a point $p$ as an argument which is guaranteed to be a non-outlier point in the optimal solution. To overcome the lack of knowledge about such a point, function \textproc{$1$-centerWithOutliers} tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and generates a ball for each, using function \textproc{KnownPoint}. It returns the ball with the minimum radius. Note that, due to space limitations inherent to streaming data model, the body of for-all loop in function \textproc{$1$-centerWithOutliers} is run in parallel.
 
 \begin{theorem}
 Algorithm~\ref{alg:1center} is a $2$-approximation algorithm for $1$-center problem with $z$ outliers, in any dimension.
@@ -177,6 +178,8 @@ Let $B^*(c^*, r^*)$ be the optimal solution. Clearly, there exists a point $p$ a
 	\label{fig:1center}
 \end{figure}
 
+% Behnam: Aks be nazaram gooya nist ziad. va inke jaii behesh refrence dade nashode!
+
 The space complexity of Algorithm~\ref{alg:1center} is $\cO(z^2 + zd)$, the update time is $\cO (z \log z + zd)$ and the query time is $\cO (z)$.
 If a non-outlier point $p$ is known then the space, update time and query time complexity of algorithm can be reduced by a factor of $z$.
 
@@ -192,7 +195,8 @@ For any fixed $d > 1$, our single-pass data stream algorithm whose working space
 
 %--- from kim and ahn
 
-In all the algorithms given this section it is assumed that $p_1$ is a non-outlier point. It is not hard to see that, this limitation can be remedied by considering $\cO(z)$ parallel instances of the algorithm, similar to Algorithm~\ref{alg:1center}.
+In all the algorithms given in this section it is assumed that $p_1$ is a non-outlier point. It is not hard to see that, this limitation can be remedied by considering $\cO(z)$ parallel instances of the algorithm, similar to Algorithm~\ref{alg:1center}.
+% Behnam: Move this to upper section, this assumption can be used for previous algorithm
 
 In Section \ref{subsec:smaller}, we give a description of our algorithm for a given $r' > 0$ for the case where $\delta^* < C r^*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, our algorithm returns a $(1.8 + \eps)$-approximate solution. We explain how to find such an $r'$ and present a full description of our algorithm for the case where $\delta^* < C r^*$ in Subsection~\ref{subsec:findr}. Then we inspect the case where $\delta^* \ge C r^*$ in Subsection~\ref{subsec:bigger}.
 
@@ -201,7 +205,9 @@ In Section \ref{subsec:smaller}, we give a description of our algorithm for a gi
 \label{subsec:smaller}
 Our idea in this section is derived from \cite[Sec.~3.1]{kim}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states. In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, we have two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
 Our modification is on the transition part. 
-%For computing outliers, we just need to consider the points that may cause a transition so instead of exiting a node we ignore this point as an outlier. % Sahand: Chi shode? Kiana: benazaram in jomle bayad pak beshe chon ham vazeh ni ham tu badesh tozih dade mishe ghashang
+%For determining outliers, we just need to consider the points that may cause a transition so instead of exiting a node we ignore this point as an outlier. % Sahand: Chi shode? 
+%Kiana: benazaram in jomle bayad pak beshe chon ham vazeh ni ham tu badesh tozih dade mishe ghashang 
+%Behnam: be nazare man baiad bashe, chon baiad begim bara outlier ha faghat hamin noghteha moheman, in nokte mohemie!
 In each state the number of points that should be considered as outlier is unknown. So all the possible choices should be considered. It is sufficient to have four integers, $n_1,\dots, n_4$ representing the number of outliers in depth $1$ to $4$, such that $\sum_{i=1}^{4} n_i=z$. To sum up, the modified algorithm is defined as follows:
 \begin{algorithm}
 \label{alg:smallc}
@@ -209,18 +215,19 @@ In each state the number of points that should be considered as outlier is unkno
 \begin{algorithmic}
 % Kiana: man be nazaram in if p_{o_i} arrives ha ro bardarim! niazi nis beheshun
 %kiana: ba in definition avalie movafeghin aya? "(Denote that $p_{o_1}=p_1$ and $p_{o_i, S'}$ is the $(n_{i-1}+1)^{st}$ point that arrives after $p_{o_{i-1},S}$ and does not lie in the candidate solution S)" fek konam algorithm khana beshe
+% man ba tarife kiana kheili moafegham
 \Function{Known$r'$}{$\mathcal{P}, z, r'$}
 	\For{$(n_1, \dots, n_4) \gets \set{(n_1, \dots, n_4) \provided \sum n_i=z}$}
 		\State $CS \gets B(p_1,r')$.
 		\State $p_{o_2} \gets $ $(n_1+1)$\st point of $\mathcal{P}$ that arrives after $p_1$ and does not lie in the corresponding candidate solution.
 		\If{$p_{o_2}$ arrives}
-			\State $CS\gets$ the case of $p_{o_2} \in B_1^*$ $\cup$ the case of $p_{o_2} \in B_2^*$.
+			\State $CS\gets$ the case of $p_{o_2} \in B_{2, 1}^*$ $\cup$ the case of $p_{o_2} \in B_{2,2}^*$.
 			\For{each case $S$}
 				\State $p_{o_3} \gets$ $(n_2+1)$\st point of $\mathcal{P}$ that arrives after $p_{o_2}$ and does not lie in the corresponding candidate solution.
 			
 		
 				\If{$p_{o_3}$ arrives} 
-					\State $CS\gets CS\setminus S$ $\cup$ the sub-case of $p_{o_3} \in B_1^*$ $\cup$ the sub-case of $p_{o_3} \in B_2^*$.
+					\State $CS\gets CS\setminus S$ $\cup$ the sub-case of $p_{o_3} \in B_{2, 1}^*$ $\cup$ the sub-case of $p_{o_3} \in B_{2,2}^*$.
 					\For {each sub-case $S'$} 
 						\State $p_{o_4} \gets$ $(n_3+1)$\st point of $\mathcal{P}$ that arrives after $p_{o_3}$ and does not lie in the corresponding candidate solution.
 
@@ -261,18 +268,17 @@ For space complexity, our algorithm maintains at most two balls in each case, an
 A $1$-center optimal solution with $z$ outliers for a streaming set of points is also an upper bound for the $2$-center optimal solution with $z$ outliers.
 \end{lemma}
 \begin{proof}
-Let $B_1^*(c^*, r_1^*)$ be the optimal solution for the $1$-center problem. Let $B_2$ be a ball with radius $r_1^*$ and center at $\infty$. Clearly, $(B_1^*, B_2)$ is a solution for $2$-center problem. Thus, the proof is complete.
+Let $B^*(c^*, r_1^*)$ be the optimal solution for the $1$-center problem. Let $B'$ be a ball with radius $r_1^*$ and center at $\infty$. Clearly, $(B^*, B')$ is a solution for $2$-center problem. Thus, the proof is complete.
 \end{proof}
 
 \begin{lemma}
 \label{lem:2lt1}
-Let $r_1^*, r_2^*$ be the radius of $1$-center and $2$-center optimal solutions with $z$ outliers, respectively. Then $r_1^* \le \left(\frac{C}{2} + 2\right) r_2^*$.
+Let $r_1^*, r_2^*$ be the radius of $1$-center and $2$-center optimal solutions with $z$ outliers, respectively. Then $r_1^* < \left(\frac{C}{2} + 2\right) r_2^*$.
 \end{lemma}
 \begin{proof}
-Suppose that $(B_1^*(c_1^*, r_2^*), B_2^*(c_2^*, r_2^*))$ is an optimal solution for $2$-center problem. Consider $m$ as the midpoint of segment 
-%$c_1c_2$. Kiana: verify this
+Suppose that $(B_{2, 1}^*(c_1^*, r_2^*), B_{2,2}^*(c_2^*, r_2^*))$ is an optimal solution for $2$-center problem. Consider $m$ as the midpoint of segment 
 $c_1^*c_2^*$.
-Clearly, $B\left(m, \frac{\delta}{2} + 2r_2^*\right)$ covers both $B_1^*$ and $B_2^*$. So it is a solution for $1$-center problem and the proof is complete.
+Clearly, $B\left(m, \frac{\delta}{2} + 2r_2^*\right)$ covers both $B_{2, 1}^*$ and $B_{2,2}^*$. So it is a solution for $1$-center problem and the proof is complete.
 \end{proof}
 
 \begin{figure}[h]
@@ -281,6 +287,7 @@ Clearly, $B\left(m, \frac{\delta}{2} + 2r_2^*\right)$ covers both $B_1^*$ and $B
 	\caption{Proof of Lemma~\ref{lem:2lt1}}
 	\label{fig:2lt1}
 \end{figure}
+%Behnam: tooie aks namosavit eshtebas baiad be delta/d koochiktar az C/2r* tabdil beshe
 
 Algorithm~\ref{alg:1center} finds a $2$-approximation for $r_1^*$. By Lemma \ref{lem:1lt2} and \ref{lem:2lt1}, it gives a $2\left(\frac{C}{2} + 2\right)$-approximation for $r_2^*$.
 
@@ -291,19 +298,10 @@ Let $r_1$ and $k_0$ be two positive real numbers. Define $k=k_0 2^i$ to be the s
 
 %In this section, we explain how we get r' such that 1.2r^*  r' < (1.2 + 2\eps/3)r^*. The basic procedure works as follows: 
 
-%Our algorithm maintains $m=\ceil{(3C+12)\eps}$ candidate lengths.	Sahand: Verify my modification.
 Our algorithm maintains $m=\ceil{\frac{1.2(3C+12)}{\eps}}$ candidate lengths.
 For each candidate length $t$, we assume that $r' = t$ and use it to run Algorithm~\ref{alg:smallc}. We use Algorithm~\ref{alg:1center} to estimate $r'$. Let $k_i$ be the $i$\nth non-zero radius calculated by the algorithm. Obviously, the sequence of answers given by the algorithm is increasing.
 
-Let $l_1=k_1$ and $l_i=2^j l_1$, where $l_i$ is the smallest number satisfying $l_i \ge k_i$. By Observation~\ref{obs:2apr}, $l_i$ is a $(2C + 8)$-approximation for $r_2^*$. So the following inequalities hold:
-\[
-\frac{2\eps}{3}\frac{1.2l_i}{2C+8}	% Sahand: in nabarabari be che dardi khord?
-\le \frac{1.2l_i}{2C+8}\le 1.2 r_2^* \le 1.2 l_i 
-\]
-Define $t_i = \frac{1.2 l_i}{m}$. If we divide the
-%interval $(0, l_i]$
- interval $(0, 1.2 l_i]$	%Sahand: Verify this
-into $m$ equal segments, then length of each segment is at most $2/3 \eps r_2^*$ and the endpoints as candidates are $\mathcal{L}_i = \set{j \times t_i \provided j = 1, \dots, m}$.
+Let $l_1=k_1$ and $l_i=2^j l_1$, where $l_i$ is the smallest number satisfying $l_i \ge k_i$. By Observation~\ref{obs:2apr}, $l_i$ is a $(2C + 8)$-approximation for $r_2^*$. If we divide the interval $(0, 1.2 l_i]$ into $m$ equal segments, then length of each segment is at most $2/3 \eps r_2^*$ and the endpoints as candidates are $\mathcal{L}_i = \set{j \times t_i \provided j = 1, \dots, m}$ where $t_i = \frac{1.2 l_i}{m}$. 
 The inequality $1.2 r_2^* \le j \times l_i \le (1.2 + \frac{2\eps}{3})r_2^*$ holds for at least one of these candidates.
 
 \begin{figure}[h]
@@ -314,11 +312,12 @@ The inequality $1.2 r_2^* \le j \times l_i \le (1.2 + \frac{2\eps}{3})r_2^*$ hol
 \end{figure}
 
 %kiana: bacheha in paragraph paini kheili bad bud benazaram. man ye talashai rush kardam vali hanuzam benazaram jaye kar dare
-
+%Behnam: khoobe
 When the first non-zero radius is observed, $l_1$ is set. Algorithm~\ref{alg:smallc} should be executed for each candidate in $\mathcal{L}_1$ for all the previous points, which have been stored in a buffer. It is not hard to see that the space complexity for storing these points is $\cO(z)$. For each new point, if $l_i=l_{i-1}$ then $\mathcal{L}_i = \mathcal{L}_{i-1}$ and it suffices to add the new point to all parallel instances corresponding to candidates in $\mathcal{L}_i$. Otherwise, Algorithm~\ref{alg:smallc} should be executed for all of the candidates in $\mathcal{L}_i$, with all the points. But this is not achievable due to space limitations. To remedy
-%remedy?? really??
+%kiana, sahand: remedy?? really??
 this problem, note that if the candidate $x_j=j \times t_i \in \mathcal{L}_i$ is also in $\mathcal{L}_{i-1}$, there is no need to start Algorithm~\ref{alg:smallc} over and the current execution will be continued. If $x_j \notin \mathcal{L}_{i-1}$, then it is certain that $x_j \ge l_{i - 1}$ (Observe that $l_i=ul_{i-1}$, for some $u\in \mathbb{N}$). Since the ball $B_1(p_1, l_{i-1})$, obtained from Algorithm~\ref{alg:1center}, has at most $z$ outliers, all the non-outlier points lie in the candidate balls in Algorithm~\ref{alg:smallc}.
 %kiana: in jomle balai oke be nazaretun? 
+% Behnam: be nazare man gheire vazehe, be nazaram baiad begim hade aksar z ta biroonan, oonam oonaii ke too buffer algorithme 1 an
 These outliers have been stored in a buffer, so for the new candidate length, it suffices to execute Algorithm~\ref{alg:smallc} with only the outlier points of $B_1$.
 
 \begin{theorem}
@@ -332,7 +331,7 @@ Algorithm~\ref{alg:smallc} uses $\cO(\frac{dz^3}{\eps})$ space, and takes $\cO(\
 
 \begin{obs}
 \label{obs:c+4}
-Let $d$ be the distance between any pair of points from two $C$-separated balls. Then $1 \le \frac{d}{\delta} \le \frac{C+4}{C}$.
+Let $d$ be the distance between arbitrary pair of points from two $C$-separated balls. Then $1 \le \frac{d}{\delta} \le \frac{C+4}{C}$.
 \end{obs}
 
 \begin{figure}[h]
@@ -357,11 +356,12 @@ By contradiction, assume that $S \cap B_{2,2}^*$ is empty. It is clear that $S$ 
 
 Let $B_1, B_2$ and $B_u$, be instances of a data structure that supports adding 
 % Kiana: and removing
-a point and gives a $\beta$-approximation for $1$-center problem with $k$ outliers, for $k=0,\dots,z$ (This data structure, does not need to maintain all the points. Suppose that it has a buffer with length $(d+1)(z+1)$ that maintains the most recently added points). Algorithm~\ref{alg:case2} assumes point $p_1$ to be in $B_{2,1}^*$. This assumption can be omitted by executing a parallel instances of the algorithm for each of the first $z+1$ points in the stream, similar to the approach in Algorithm~\ref{alg:smallc}. This algorithm maintains $c_1$ as an arbitrary point in $B_{2,1}^*$ and $c_2$ as a candidate that may be in $B_{2,2}^*$. It tries to divide points into three subdivisions:
+% Behnam: we don't need removing a point!
+a point and gives a $\beta$-approximation for $1$-center problem with $k$ outliers, for $k=0,\dots,z$ (This data structure, does not need to maintain all the points. Suppose that it has a buffer with length $(d+1)(z+1)$ that maintains the most recently added points). Algorithm~\ref{alg:case2} assumes point $p_1$ to be in $B_{2,1}^*$. This algorithm maintains $c_1$ as an arbitrary point in $B_{2,1}^*$ and $c_2$ as a candidate that may be in $B_{2,2}^*$. It tries to divide points into three subdivisions:
 \begin{itemize}
 \item $B_1$, a subset of $\mathcal{P}$ where $B_1 \cap B_{2,2}^* = \emptyset$, that is a set of points that provably lie outside $B_{2, 2}^*$.
-\item $B_2$, a subset of $\mathcal{P}$ along with a \emph{secondary point}, such that if $B_{2, 2}^*$ covered the secondary point, then $B_2 \cap B_{2, 1}^* = \emptyset$.
-\item Buffer, with size at most $z$ that if $c_2 \in B_{2, 2}^*$ then all of them are outliers.
+\item $B_2$, a subset of $\mathcal{P}$ along with a \emph{candidate point} $c_p$, such that if $B_{2, 2}^*$ covered the candidate point, then $B_2 \cap B_{2, 1}^* = \emptyset$.
+\item Buffer, with size at most $z$ that if $c_p \in B_{2, 2}^*$ then all of them are outliers.
 \end{itemize}
 Algorithm~\ref{alg:case2} also maintains $B_u$ as union of $B_1$ and $B_2$.
 
@@ -376,10 +376,10 @@ Algorithm~\ref{alg:case2} also maintains $B_u$ as union of $B_1$ and $B_2$.
 
 \begin{lemma}
 \label{lem:(z+1)-furthest}
-Let $\mathcal{P}$ be a set of points and $B_1$ and $B_2$ be two $C$-separated balls covering all but at most $z$ of the points in $\mathcal{P}$. Furthermore, let $p_1$ be arbitrary points in $B_1$ and $q$ be the $(z+1)$\st furthest point from $p_1$. Then $\frac{C}{C+4}\card{qp_1}$ is a lower bound for the distance between $B_1$ and $B_2$.
+Let $p_1$ be an arbitrary points in $B_{2,1}^{*}$ and $q$ be the $(z+1)$\st furthest point from $p_1$. Then $\frac{C}{C+4}\card{qp_1}$ is a lower bound for $\delta^*$.
 \end{lemma}
 \begin{proof}
-Due to Lemma~\ref{lem:c-sep}, there exists $p_2 \in B_{2,2}^*$ such that $\card{p_1p_2} \ge \card{qp_1}$. Thus, by Observation~\ref{obs:c+4}, $\frac{C}{C+4} \card{p_1p_2} \le \delta$. The claim follows immediately.
+Due to Lemma~\ref{lem:c-sep}, there exists $p_2 \in B_{2,2}^*$ such that $\card{p_1p_2} \ge \card{qp_1}$. Thus, by Observation~\ref{obs:c+4}, $\frac{C}{C+4} \card{p_1p_2} \le \delta^*$. The claim follows immediately.
 \end{proof}
 
 Function \textproc{AddTo$B_1$} is used to add a point $p$ to $B_1$. The point will be added only if the point is within $\delta$-radius of the center $c_1$, where $\delta$, calculated by Algorithm~\ref{alg:case2}, is $\frac{C}{C+4}\card{qc_1}$ and $q$ is the $(z+1)$\nth furthest point from $c_1$. By Lemma~\ref{lem:(z+1)-furthest}, $\delta$ is a lower bound for $\delta^*$. So any point within $\delta$-radius of $c_1$ is guaranteed to lie outside $B_{2,2}^*$. Thus Function \textsc{AddTo$B_1$} does not violate the property $B_1 \cap B_{2,2}^* = \emptyset$.
@@ -396,9 +396,9 @@ Function \textproc{AddTo$B_1$} is used to add a point $p$ to $B_1$. The point wi
 
 Function \textproc{AddTo$B_2$} is used to add a point $p$ to $B_2$. Initially, $B_2$ is empty and $c_2$ and $r_c$ are not initialized. When an appropriate candidate is found, Algorithm~\ref{alg:case2} sets $c_2$ to that candidate and $r_c$ to $\frac{2\card{c_1c_2}}{C}$ and thereafter
 %kiana: bacheha kudumetun in kalame ro gozashtin? azash motmaeni? man hichja nadide budamesh
-points are added to $B_2$ only if they lie within $r_c$-radius of $c_2$. At this point $c_2$ is considered as the secondary point for $B_2$. Clearly the subdivision property for $B_2$ holds initially when $B_2$ consists of the single point $c_2$. All the subsequent points added to $B_2$ are within $r_c$-radius of $c_2$ and given $C\ge 7$, by Observation~\ref{obs:intersection} subdivision property is invariant under this operation.
+points are added to $B_2$ only if they lie within $r_c$-radius of $c_2$. At this point $c_2$ is considered as the \emph{candidate point} $c_p$. Clearly the subdivision property for $B_2$ holds initially when $B_2$ consists of the single point $c_2$. All the subsequent points added to $B_2$ are within $r_c$-radius of $c_2$ and given $C\ge 7$, by Observation~\ref{obs:intersection} subdivision property is invariant under this operation.
 
-When $\card{B_2}$ reaches $(d+1)(z+1)$, $r_c$ is increased by a factor of $(2 + \frac{2}{C})$. It is easy to see that $(2 + \frac{2}{C})r_c < \frac{\delta}{2}$ provided $C \ge 14$ and thus by Observation~\ref{obs:intersection} the property is not violated.
+When $\card{B_2}$ reaches $(d+1)(z+1)$, we move \emph{candidate point} to center point of $B_2$ and $r_c$ is increased by a factor of $(2 + \frac{2}{C})$ to completly cover the new \emph{candidate point} and it's surronding ball. It is easy to see that $(2 + \frac{2}{C})r_c < \frac{\delta}{2}$ provided $C \ge 14$ and thus by Observation~\ref{obs:intersection} the property is not violated.
 
 \begin{algorithmic}
 \Function{AddTo$B_2$}{p}
@@ -430,18 +430,15 @@ Any set $\mathcal{P}$ of points in $d$-dimensional Euclidean space has a centerp
 Given a set $\mathcal{P}$ of $k(d+1)$ points in $d$-dimensional Euclidean space, there is a point $c_p$, not necessarily in $\mathcal{P}$, that any convex object that does not cover $c_p$, leaves at least $k$ point of $\mathcal{P}$ uncovered.
 \end{cor}
 
-Let $c_p$ be a centerpoint of points in $B_2$, when $(z+1)(d+1)$ points have been added to $B_2$. We claim that with $B_2 = B(c_2, (2 + \frac{2}{C})r_c)$, $c_p$ can be chosen as the secondary point for $B_2(c_2, (2 + \frac{2}{C})r_c)$.
-%As it was mentioned earlier, if $c_p \in B_{2,2}^*$ then $r^* \le \frac{2\card{c_1c_p}}{C}$. Thus $B_{2,2}^* \subseteq B(c_2, \frac{2\card{c_1c_p}}{C})$.	% Sahand: Verify my modification:
+Let new \emph{candidate point} be $c_p$, centerpoint of points in $B_2$, when $(z+1)(d+1)$ points have been added to $B_2$. We claim that with $B_2 = B(c_2, (2 + \frac{2}{C})r_c)$, ball $B(c_p, \frac{2\card{c_1c_p}}{C})$ completly covered.
 If $c_p \in B_{2,2}^*$ then by Observation~\ref{obs:c+4}, $r^* \le \frac{\card{c_1c_p}}{C}$. Thus $B_{2,2}^* \subseteq B(c_p, \frac{2\card{c_1c_p}}{C})$.
 Since:
 \[
 \frac{2\card{c_1c_p}}{C} \leq \frac{2}{C}(\card{c_1c_2} + r_c) \leq (1 + \frac{2}{C})r_c
 \]
-%then $B_{2,2}^* \subseteq B(c_2, (1 + \frac{2}{C})r_c)$.	%Sahand: Verify my modification:
- then $B_{2,2}^* \subseteq B(c_p, (1 + \frac{2}{C})r_c) \subseteq B(c_2, (2 + \frac{2}{C})r_c)$.
-So $B_2(c_2, (2 + \frac{2}{C})r_c) \cap B_{2,2}^* \neq \emptyset$. Thus supposing $C \ge 14$ and by Observation~\ref{obs:intersection}, $B_2 \cap B_{2,1}^* = \emptyset$. Thus the claim follows.
+ then $B_{2,2}^* \subseteq B(c_p, (1 + \frac{2}{C})r_c) \subseteq B(c_2, (2 + \frac{2}{C})r_c)$. Thus supposing $C \ge 14$ and by Observation~\ref{obs:intersection}, $B_2 \cap B_{2,1}^* = \emptyset$. Thus the claim follows.
 
-At some point during the execution of Algorithm \ref{alg:case2}, the assumption about $c_2$ lying in $B_{2,2}^*$ might be contradicted when the buffer overflows. We can then conclude that $c_2 \notin B_{2,2}^*$.
+At some point during the execution of Algorithm \ref{alg:case2}, the assumption about $c_p \in B_{2,2}^*$ might be contradicted when the buffer overflows. We can then conclude that $c_2 \notin B_{2,2}^*$.
 At this point, behavior of Algorithm~\ref{alg:case2} depends on size of $B_2$ relative to $(d+1)(z+1)$:
 \begin{itemize}
 \item If $\card{B_2} < (d+1)(z+1)$ then $c_2$ can be added to $B_1$, by definition of $B_1$.
@@ -450,7 +447,7 @@ The algorithm then tries all points in $B_2 \cup \mbox{Buffer} \setminus \set{c_
 \[
 \delta \ge \frac{C \card{qp_1}}{C+4} \ge \frac{C}{C+4} (\card{c_1c_2} - r_c) = \frac{C^2 - 2C}{2C + 8} r_c
 \]
-As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As shown in Observation~\ref{obs:intersection}, the ball $B_2(c_2, (2 + \frac{2}{C}) r_c)$ has nonempty intersection with exactly one of $B_{2, 1}^*$ and $B_{2, 2}^*$ (not all of its points can be outliers). Since the buffer overflowed, the assumption about the secondary point, $c_p$, being in $B_{2,2}^*$ must have been invalid. By Corollary~\ref{cor:omitting-centerpoint} if $c_p$ is not covered, then circle $B_{2,1}^*$ leaves at least $z+1$ points of $B_2$ uncovered, and there will be more than $z$ outliers. Thus, $c_p$ has to be covered. As a result, $c_p \in B_{2, 1}^*$ and all the points of $B_2$ can be added to $B_1$. This is done by replacing $B_1$ with $B_u$ and initializing $B_2$ over again.
+As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As shown in Observation~\ref{obs:intersection}, the ball $B_2(c_2, (2 + \frac{2}{C}) r_c)$ has nonempty intersection with exactly one of $B_{2, 1}^*$ and $B_{2, 2}^*$ (not all of its points can be outliers). Since the buffer overflowed, the assumption about the candidate point, $c_p$, being in $B_{2,2}^*$ must have been invalid. By Corollary~\ref{cor:omitting-centerpoint} if $c_p$ is not covered, then circle $B_{2,1}^*$ leaves at least $z+1$ points of $B_2$ uncovered, and there will be more than $z$ outliers. Thus, $c_p$ has to be covered. As a result, $c_p \in B_{2, 1}^*$ and all the points of $B_2$ can be added to $B_1$. This is done by replacing $B_1$ with $B_u$ and initializing $B_2$ over again.
 \end{itemize}
 
 \begin{algorithm}
@@ -473,9 +470,8 @@ As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As 
 				\State $B_1 \gets B_u$, $B_2 \gets \emptyset$
 			\ElsIf{$c_2$ is set}
 				\State $B_1 \gets B_1 \cup \set{c_2}$
-				\State remove $c_2$ from $B_2$	%Sahand: Is it clear that removing does not mean that B_2 is a dynamic data structure? Kiana: benazare man dynamic mishe! un bala ham ke goftam bayad begin and removing ro! vali gand nemikhore be 1-center?
 			\EndIf
-			\State $T \gets \mbox{Buffer} \cup B_2$
+			\State $T \gets \mbox{Buffer} \cup B_2 - {c_2}$
 			\State $\mbox{Buffer} \gets \emptyset, B_2 \gets \emptyset$
 			\If{first iteration of while}
 				\For{$p \in T$}
@@ -496,14 +492,14 @@ As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As 
 \end{algorithmic}
 \end{algorithm}
 
-Let $B_1'$, $B_2'$ and $B_u'$ be the $1$-centers obtained from $B_1$, $B_2$ and $B_u$ by the $\beta$-approximation algorithm, respectively. To answer a query, we use these balls. By the initial assumption about $p_1$, $B_1$ contains $B_{2,1}^*$ and $B_1'$ is a $\beta$-approximation for $B_{2,1}^*$. But for $B_2$ it may be the case that our assumption about the secondary point was incorrect or non-optimal, so $B_2'$ is not a good approximation for $B_{2,2}^*$. There are two cases for $\card{B_2}$ to be considered. If $\card{B_2} < (z+1)(d+1)$, then we can try each point in $B_2 \cup \mbox{Buffer}$ as a candidate for the secondary point. If $\card{B_2} \ge (d+1)(z+1)$, then there is no need for points in $B_2$ to be considered, since for those points as secondary point, $B_1$ would be replaced by $B_u$ and $B_2$ would be empty. Thus it suffices to consider points of Buffer as candidates and compare them to the solution $(B_u, \emptyset)$.
+Let $B_1'$, $B_2'$ and $B_u'$ be the $1$-centers obtained from $B_1$, $B_2$ and $B_u$ by the $\beta$-approximation algorithm, respectively. To answer a query, we use these balls. By the initial assumption about $p_1$, $B_1$ contains $B_{2,1}^*$ and $B_1'$ is a $\beta$-approximation for $B_{2,1}^*$. But for $B_2$ it may be the case that our assumption about the \emph{candidate point} was incorrect or non-optimal, so $B_2'$ is not a good approximation for $B_{2,2}^*$. There are two cases for $\card{B_2}$ to be considered. If $\card{B_2} < (z+1)(d+1)$, then we can try each point in $B_2 \cup \mbox{Buffer}$ as a candidate for the \emph{candidate point}. If $\card{B_2} \ge (d+1)(z+1)$, then there is no need for points in $B_2$ to be considered, since for those points as \emph{candidate point}, $B_1$ would be replaced by $B_u$ and $B_2$ would be empty. Thus it suffices to consider points of Buffer as candidates and compare them to the solution $(B_u, \emptyset)$.
 
 \begin{algorithm}
 \label{alg:query}
 \leavevmode
 \begin{algorithmic}
 \Function{Query}{}
-	\State solutions = [query $B_1$ $B_2$ Buffer]
+	\State solutions = [\Call{QuerySubdivision}{$B_1$ $B_2$ Buffer}]
 	
 	\If {$\card{B_2} \geq (d+1)(z+1)$}
 		\State candidates $\gets$ Buffer
