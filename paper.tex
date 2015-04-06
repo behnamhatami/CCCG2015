@@ -214,7 +214,7 @@ In each state the number of points that should be considered as outlier is unkno
 \leavevmode
 \begin{algorithmic}
 % Kiana: man be nazaram in if p_{o_i} arrives ha ro bardarim! niazi nis beheshun
-%kiana: ba in definition avalie movafeghin aya? "(Denote that $p_{o_1}=p_1$ and $p_{o_i, S'}$ is the $(n_{i-1}+1)^{st}$ point that arrives after $p_{o_{i-1},S}$ and does not lie in the candidate solution S)" fek konam algorithm khana beshe
+%kiana: ba in definition avalie movafeghin aya? "
 % man ba tarife kiana kheili moafegham
 \Function{Known$r'$}{$\mathcal{P}, z, r'$}
 	\For{$(n_1, \dots, n_4) \gets \set{(n_1, \dots, n_4) \provided \sum n_i=z}$}
@@ -469,9 +469,9 @@ As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As 
 			\If{$\card{B_2} \ge (d+1)(z+1)$}
 				\State $B_1 \gets B_u$, $B_2 \gets \emptyset$
 			\ElsIf{$c_2$ is set}
-				\State $B_1 \gets B_1 \cup \set{c_2}$
+				\State $B_1 \gets B_1 \cup \set{c_2}$, $B_u \gets B_u \cup \set{c_2}$
 			\EndIf
-			\State $T \gets \mbox{Buffer} \cup B_2 - {c_2}$
+			\State $T \gets \mbox{Buffer} \cup B_2 - \set{c_2}$
 			\State $\mbox{Buffer} \gets \emptyset, B_2 \gets \emptyset$
 			\If{first iteration of while}
 				\For{$p \in T$}
