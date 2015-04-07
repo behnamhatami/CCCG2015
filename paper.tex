@@ -203,23 +203,14 @@ In Section \ref{subsec:smaller}, we give a description of our algorithm for a gi
 
 \subsection{The Case $\delta^* < C r*$}
 \label{subsec:smaller}
-Our idea in this section is derived from \cite[Sec.~3.1]{kim}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states. In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, we have two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
-Our modification is on the transition part. 
-%For determining outliers, we just need to consider the points that may cause a transition so instead of exiting a node we ignore this point as an outlier.
-% Sahand: Chi shode?
-%Kiana: benazaram in jomle bayad pak beshe chon ham vazeh ni ham tu badesh tozih dade mishe ghashang 
-%Behnam: be nazare man baiad bashe, chon baiad begim bara outlier ha faghat hamin noghteha moheman, in nokte mohemie!
-%Sahand: In chetore masalan?:
+Our idea in this section is derived from \cite[Sec.~3.1]{ahn2014computing, kim2014improved}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states. In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, we have two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
+Our modification is on the transition part.
 Points that are covered by current solution can safely be ignored, as they do not cause any transitions in the state, and only those points that lie outside the solution are candidates for being an outlier.
 In each state the number of points that should be considered as outlier is unknown. So all the possible choices should be considered. It is sufficient to have four integers, $n_1,\dots, n_4$ representing the number of outliers in depth $1$ to $4$, such that $\sum_{i=1}^{4} n_i=z$. To sum up, the modified algorithm is defined as follows:
 \begin{algorithm}
 \label{alg:smallc}
 \leavevmode
 \begin{algorithmic}
-% Kiana: man be nazaram in if p_{o_i} arrives ha ro bardarim! niazi nis beheshun
-% kiana: ba in definition avalie movafeghin aya? "
-% behnam: man ba tarife kiana kheili moafegham
-% sahand: done
 \Function{Known$r'$}{$\mathcal{P}, z, r'$}
 	\For{$(n_1, \dots, n_4) \gets \set{(n_1, \dots, n_4) \provided \sum n_i=z}$}
 		\State $CS \gets B(p_1,r')$.
@@ -289,7 +280,6 @@ Clearly, $B\left(m, \frac{\delta}{2} + 2r_2^*\right)$ covers both $B_{2, 1}^*$ a
 	\caption{Proof of Lemma~\ref{lem:2lt1}}
 	\label{fig:2lt1}
 \end{figure}
-%Behnam: tooie aks namosavit eshtebas baiad be delta/d koochiktar az C/2r* tabdil beshe
 
 Algorithm~\ref{alg:1center} finds a $2$-approximation for $r_1^*$. By Lemma \ref{lem:1lt2} and \ref{lem:2lt1}, it gives a $2\left(\frac{C}{2} + 2\right)$-approximation for $r_2^*$.
 
@@ -356,10 +346,7 @@ Let $\mathcal{P}$ be a set of points and assume that $B_{2,1}^*$ and $B_{2,2}^*$
 By contradiction, assume that $S \cap B_{2,2}^*$ is empty. It is clear that $S$ contains at least one non-outlier point. Let $q$ be the furthest point of $S \cap B_{2,1}^*$ from $p_1$. Consider $B(p_1, \card{p_1q})$. It is clear that $B$ covers $\mathcal{P} \setminus S$. Since $p_1, q \in B_{2,1}^*$, then $\card{p_1q}$ is at most $2r_2^*$. Thus by Observation~\ref{obs:intersection}, $B_{2,2}^* \cap B = \emptyset$. Therefore $B_{2,2}^* \cap \mathcal{P} = \emptyset$ and hence $B_{2,2}^*$ is empty, which contradicts the optimality of this solution.
 \end{proof}
 
-Let $B_1, B_2$ and $B_u$, be instances of a data structure that supports adding 
-% Kiana: and removing
-% Behnam: we don't need removing a point!
-a point and gives a $\beta$-approximation for $1$-center problem with $k$ outliers, for $k=0,\dots,z$ (This data structure, does not need to maintain all the points. Suppose that it has a buffer with length $(d+1)(z+1)$ that maintains the most recently added points). Algorithm~\ref{alg:case2} assumes point $p_1$ to be in $B_{2,1}^*$. This algorithm maintains $c_1$ as an arbitrary point in $B_{2,1}^*$ and $c_2$ as a candidate that may be in $B_{2,2}^*$. It tries to divide points into three subdivisions:
+Let $B_1, B_2$ and $B_u$, be instances of a data structure that supports adding a point and gives a $\beta$-approximation for $1$-center problem with $k$ outliers, for $k=0,\dots,z$ (This data structure, does not need to maintain all the points. Suppose that it has a buffer with length $(d+1)(z+1)$ that maintains the most recently added points). Algorithm~\ref{alg:case2} assumes point $p_1$ to be in $B_{2,1}^*$. This algorithm maintains $c_1$ as an arbitrary point in $B_{2,1}^*$ and $c_2$ as a candidate that may be in $B_{2,2}^*$. It tries to divide points into three subdivisions:
 \begin{itemize}
 \item $B_1$, a subset of $\mathcal{P}$ where $B_1 \cap B_{2,2}^* = \emptyset$, that is a set of points that provably lie outside $B_{2, 2}^*$.
 \item $B_2$, a subset of $\mathcal{P}$ along with a \emph{candidate point} $c_p$, such that if $B_{2, 2}^*$ covered the candidate point, then $B_2 \cap B_{2, 1}^* = \emptyset$.
@@ -534,7 +521,7 @@ Let $B_1'$, $B_2'$ and $B_u'$ be the $1$-centers obtained from $B_1$, $B_2$ and 
 \end{algorithm}
 
 
-Suppose that our data structure for maintaining $B_1$, $B_2$ and $B_u$ uses $S(n,z,d)$ space, $T(n,z,d)$ update and $Q(n,z,d)$ query time. Note that by $Q_{o}(zd,z,d)$ we mean the query time for the offline $1$-center problem with $z$ outlier in $d$ dimensions. The best known algorithm for $1$-center without outliers is $1.22$-approximation by \cite{chan}. The buffering framework introduced in \cite{zarrabi} can use this algorithm to achieve a $(1.22\sqrt{2})$-approximation ($1.22\sqrt{2} < 1.8$) for $1$-center problem with outliers.
+Suppose that our data structure for maintaining $B_1$, $B_2$ and $B_u$ uses $S(n,z,d)$ space, $T(n,z,d)$ update and $Q(n,z,d)$ query time. Note that by $Q_{o}(zd,z,d)$ we mean the query time for the offline $1$-center problem with $z$ outlier in $d$ dimensions. The best known algorithm for $1$-center without outliers is $1.22$-approximation by \cite{chan2014streaming, agarwal2010streaming}. The buffering framework introduced in \cite{zarrabi2009streaming} can use this algorithm to achieve a $(1.22\sqrt{2})$-approximation ($1.22\sqrt{2} < 1.8$) for $1$-center problem with outliers.
 
 \begin{theorem}
 \label{thm:2nd-cmplx}
@@ -551,14 +538,6 @@ Our algorithm uses $\cO(zS(n, z, d) + \frac{dz^4}{\eps})$ space and has time com
 \begin{proof}
 Result follows immediately from Theorems~\ref{thm:1st-cmplx} and \ref{thm:2nd-cmplx} and the fact that $p_1$ was assumed to be a non-outlier.
 \end{proof}
-
-
-					
- 
-
-
-
-
 
 %--------------- BIBS --------------------
 
