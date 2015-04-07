@@ -205,51 +205,53 @@ In Section \ref{subsec:smaller}, we give a description of our algorithm for a gi
 \label{subsec:smaller}
 Our idea in this section is derived from \cite[Sec.~3.1]{kim}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states. In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, we have two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
 Our modification is on the transition part. 
-%For determining outliers, we just need to consider the points that may cause a transition so instead of exiting a node we ignore this point as an outlier. % Sahand: Chi shode? 
+%For determining outliers, we just need to consider the points that may cause a transition so instead of exiting a node we ignore this point as an outlier.
+% Sahand: Chi shode?
 %Kiana: benazaram in jomle bayad pak beshe chon ham vazeh ni ham tu badesh tozih dade mishe ghashang 
 %Behnam: be nazare man baiad bashe, chon baiad begim bara outlier ha faghat hamin noghteha moheman, in nokte mohemie!
+%Sahand: In chetore masalan?:
+Points that are covered by current solution can safely be ignored, as they do not cause any transitions in the state, and only those points that lie outside the solution are candidates for being an outlier.
 In each state the number of points that should be considered as outlier is unknown. So all the possible choices should be considered. It is sufficient to have four integers, $n_1,\dots, n_4$ representing the number of outliers in depth $1$ to $4$, such that $\sum_{i=1}^{4} n_i=z$. To sum up, the modified algorithm is defined as follows:
 \begin{algorithm}
 \label{alg:smallc}
 \leavevmode
 \begin{algorithmic}
 % Kiana: man be nazaram in if p_{o_i} arrives ha ro bardarim! niazi nis beheshun
-%kiana: ba in definition avalie movafeghin aya? "
-% man ba tarife kiana kheili moafegham
+% kiana: ba in definition avalie movafeghin aya? "
+% behnam: man ba tarife kiana kheili moafegham
+% sahand: done
 \Function{Known$r'$}{$\mathcal{P}, z, r'$}
 	\For{$(n_1, \dots, n_4) \gets \set{(n_1, \dots, n_4) \provided \sum n_i=z}$}
 		\State $CS \gets B(p_1,r')$.
-		\State $p_{o_2} \gets $ $(n_1+1)$\st point of $\mathcal{P}$ that arrives after $p_1$ and does not lie in the corresponding candidate solution.
+		\State $p_{o_2} \gets $ \Call{NthOutlier}{$n_1 + 1$}
 		\If{$p_{o_2}$ arrives}
-			\State $CS\gets$ the case of $p_{o_2} \in B_{2, 1}^*$ $\cup$ the case of $p_{o_2} \in B_{2,2}^*$.
+			\State $CS\gets$ the sub-case of $p_{o_2} \in B_{2, 1}^*$ $\cup$ the sub-case of $p_{o_2} \in B_{2,2}^*$.
 			\For{each case $S$}
-				\State $p_{o_3} \gets$ $(n_2+1)$\st point of $\mathcal{P}$ that arrives after $p_{o_2}$ and does not lie in the corresponding candidate solution.
-			
-		
+				\State $p_{o_3} \gets$ \Call{NthOutlier}{$n_2 + 1$}
 				\If{$p_{o_3}$ arrives} 
 					\State $CS\gets CS\setminus S$ $\cup$ the sub-case of $p_{o_3} \in B_{2, 1}^*$ $\cup$ the sub-case of $p_{o_3} \in B_{2,2}^*$.
 					\For {each sub-case $S'$} 
-						\State $p_{o_4} \gets$ $(n_3+1)$\st point of $\mathcal{P}$ that arrives after $p_{o_3}$ and does not lie in the corresponding candidate solution.
-
+						\State $p_{o_4} \gets$ \Call{NthOutlier}{$n_3 + 1$}
 						\If {$p_{o_4}$ arrives} 
 							\State Replace $S'$ with a new candidate solution.
-							\If{more than $n_4$ points arrive after $p_{o_4}$ that lie outside of the corresponding candidate solutions}
-								\State Abandon the solution
+							\State $p_{o_5} \gets$ \Call{NthOutlier}{$n_4 + 1$}
+							\If{$p_{o_5}$ arrives}
+								\State Abandon the solution.
 							\EndIf
 						\EndIf
-
 					\EndFor
 				\EndIf
 			\EndFor
 
 		\EndIf
-		
 		\State $\mathop{Sol}_{n_1,n_2,n_3,n_4} \gets$ the solution with the smallest larger radius, among all the sub-cases.
 	\EndFor
 	\State \Return the solution $\mathop{Sol}_{n_1,n_2,n_3,n_4}$ with the smallest radius, for all valid values of $(n_1,n_2,n_3,n_4)$.
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+Here, \textproc{NthOutlier}$(n)$ returns the $n$\nth next point in $\mathcal{P}$ that does not lie in current candidate solution.
+
 \begin{theorem}
 Given $\delta^* < C r*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, Algorithm~\ref{alg:smallc} uses $\cO (dz^3)$ space and returns a $(1.8+\eps)$-approximate solution. Algorithm~\ref{alg:smallc} spends $\cO (dz^3)$ update time for each point in $\mathcal{P}$ and answers a query in $\cO (dz^3)$.
 \end{theorem}
@@ -427,7 +429,7 @@ Any set $\mathcal{P}$ of points in $d$-dimensional Euclidean space has a centerp
 
 \begin{cor}
 \label{cor:omitting-centerpoint}
-Given a set $\mathcal{P}$ of $k(d+1)$ points in $d$-dimensional Euclidean space, there is a point $c_p$, not necessarily in $\mathcal{P}$, that any convex object that does not cover $c_p$, leaves at least $k$ point of $\mathcal{P}$ uncovered.
+Given a set $\mathcal{P}$ of $k(d+1)$ points in $d$-dimensional Euclidean space, there is a point $c_p$, not necessarily in $\mathcal{P}$, that any convex object that does not cover $c_p$, leaves at least $k$ points of $\mathcal{P}$ uncovered.
 \end{cor}
 
 Let new \emph{candidate point} be $c_p$, centerpoint of points in $B_2$, when $(z+1)(d+1)$ points have been added to $B_2$. We claim that with $B_2 = B(c_2, (2 + \frac{2}{C})r_c)$, ball $B(c_p, \frac{2\card{c_1c_p}}{C})$ completly covered.
