@@ -113,7 +113,7 @@
 Let $B(c,r)$ denote a ball with center $c$ and radius $r$. We denote by $pq$ the straight line segment between these two points and by $\card{pq}$ the length of this segment. 
 %kiana: tarife delta ro chanja didam nagofte budan! benazaram ma ham mitunim nagim, baz age fek mikonin lazeme tarif konam
 %Behnam: be nazaram alan bashe behtare, age doctor khast hazf mikone
-Define $\delta$ of two balls $B(c,r)$ and $B'(c',r')$, the minimum distance between $B$ and $B'$ which is equal to $\card{cc'}-r-r'$.
+Define $\delta$ of two balls $B(c,r)$ and $B'(c',r')$, the minimum distance between $B$ and $B'$ which is equal to $\max (0, \card{cc'}-r-r')$.
 
 Let $B_{2,1}^*(c_{2,1}^*, r_2^*)$ and $B_{2,2}^*(c_{2,2}^*, r_2^*)$ denote the optimal solution to $2$-center problem with $z$ outliers. By $\delta^*$ we denote the distance between $B_{2,1}^*$ and $B_{2,2}^*$, that is, $\delta^* = \max (0, \card{c_1^*c_2^*} - 2r^*)$. 
 
@@ -161,7 +161,7 @@ Given an $n$-point set $\mathcal{P}$ in $d$ dimensions, a point $c \in R^d$ is c
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
-Function \textproc{KnownPoint} in Algorithm~\ref{alg:1center}, takes a point $p$ as an argument which is guaranteed to be a non-outlier point in the optimal solution. To overcome the lack of knowledge about such a point, function \textproc{$1$-centerWithOutliers} tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and generates a ball for each, using function \textproc{KnownPoint}. It returns the ball with the minimum radius. Note that, due to space limitations inherent to streaming data model, the body of for-all loop in function \textproc{$1$-centerWithOutliers} is run in parallel.
+Function \textproc{KnownPoint} in Algorithm~\ref{alg:1center}, takes a point $p$ as an argument which is guaranteed to be a non-outlier point in the optimal solution. To overcome the lack of knowledge about such a point, function \textproc{$1$-centerWithOutliers} tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and generates a ball for each, using function \textproc{KnownPoint}. It returns the ball with the minimum radius. Note that, due to space limitations inherent to streaming data model, the body of for-all loop in function \textproc{$1$-centerWithOutliers} run in parallel.
 
 \begin{theorem}
 Algorithm~\ref{alg:1center} is a $2$-approximation algorithm for $1$-center problem with $z$ outliers, in any dimension.
@@ -244,7 +244,7 @@ In each state the number of points that should be considered as outlier is unkno
 Here, \textproc{NthOutlier}$(n)$ returns the $n$\nth next point in $\mathcal{P}$ that does not lie in current candidate solution.
 
 \begin{theorem}
-Given $\delta^* < C r*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, Algorithm~\ref{alg:smallc} uses $\cO (dz^3)$ space and returns a $(1.8+\eps)$-approximate solution. Algorithm~\ref{alg:smallc} spends $\cO (dz^3)$ update time for each point in $\mathcal{P}$ and answers a query in $\cO (dz^3)$.
+Given $\delta^* < C r^*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, Algorithm~\ref{alg:smallc} uses $\cO (dz^3)$ space and returns a $(1.8+\eps)$-approximate solution. Algorithm~\ref{alg:smallc} spends $\cO (dz^3)$ update time for each point in $\mathcal{P}$ and answers a query in $\cO (dz^3)$.
 \end{theorem}
 
 \begin{proof}
@@ -307,7 +307,7 @@ The inequality $1.2 r_2^* \le j \times l_i \le (1.2 + \frac{2\eps}{3})r_2^*$ hol
 %Behnam: khoobe
 When the first non-zero radius is observed, $l_1$ is set. Algorithm~\ref{alg:smallc} should be executed for each candidate in $\mathcal{L}_1$ for all the previous points, which have been stored in a buffer. It is not hard to see that the space complexity for storing these points is $\cO(z)$. For each new point, if $l_i=l_{i-1}$ then $\mathcal{L}_i = \mathcal{L}_{i-1}$ and it suffices to add the new point to all parallel instances corresponding to candidates in $\mathcal{L}_i$. Otherwise, Algorithm~\ref{alg:smallc} should be executed for all of the candidates in $\mathcal{L}_i$, with all the points. But this is not achievable due to space limitations. To remedy
 %kiana, sahand: remedy?? really??
-this problem, note that if the candidate $x_j=j \times t_i \in \mathcal{L}_i$ is also in $\mathcal{L}_{i-1}$, there is no need to start Algorithm~\ref{alg:smallc} over and the current execution will be continued. If $x_j \notin \mathcal{L}_{i-1}$, then it is certain that $x_j \ge l_{i - 1}$ (Observe that $l_i=ul_{i-1}$, for some $u\in \mathbb{N}$). Since the ball $B_1(p_1, l_{i-1})$, obtained from Algorithm~\ref{alg:1center}, has at most $z$ outliers, all the non-outlier points lie in the candidate balls in Algorithm~\ref{alg:smallc}.
+this problem, note that if the candidate $x_j=j \times t_i \in \mathcal{L}_i$ is also in $\mathcal{L}_{i-1}$, there is no need to start Algorithm~\ref{alg:smallc} over and the current execution will be continued. If $x_j \notin \mathcal{L}_{i-1}$, then it is certain that $x_j \ge l_{i - 1}$ (Observe that $l_i=ul_{i-1}$, for some $u\in \mathbb{N}$). Since the ball $B_1(p_1, l_{i-1})$, obtained from Algorithm~\ref{alg:1center}, has at most $z$ outliers, all the non-outlier points of Algorithm~\ref{alg:1center}  lie in the candidate balls in Algorithm~\ref{alg:smallc}.
 %kiana: in jomle balai oke be nazaretun? 
 % Behnam: be nazare man gheire vazehe, be nazaram baiad begim hade aksar z ta biroonan, oonam oonaii ke too buffer algorithme 1 an
 These outliers have been stored in a buffer, so for the new candidate length, it suffices to execute Algorithm~\ref{alg:smallc} with only the outlier points of $B_1$.
