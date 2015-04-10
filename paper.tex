@@ -111,8 +111,6 @@
 \section{Preliminaries}
 \label{sec:pre}
 Let $B(c,r)$ denote a ball with center $c$ and radius $r$. We denote by $pq$ the straight line segment between these two points and by $\card{pq}$ the length of this segment. 
-%kiana: tarife delta ro chanja didam nagofte budan! benazaram ma ham mitunim nagim, baz age fek mikonin lazeme tarif konam
-%Behnam: be nazaram alan bashe behtare, age doctor khast hazf mikone
 Define $\delta$ of two balls $B(c,r)$ and $B'(c',r')$, the minimum distance between $B$ and $B'$ which is equal to $\max (0, \card{cc'}-r-r')$.
 
 Let $B_{2,1}^*(c_{2,1}^*, r_2^*)$ and $B_{2,2}^*(c_{2,2}^*, r_2^*)$ denote the optimal solution to $2$-center problem with $z$ outliers. By $\delta^*$ we denote the distance between $B_{2,1}^*$ and $B_{2,2}^*$, that is, $\delta^* = \max (0, \card{c_1^*c_2^*} - 2r^*)$. 
@@ -121,8 +119,6 @@ Two congruent balls $B_1$ and $B_2$ with radius $r$ are said to be \emph{$C$-sep
 
 %Let $\mathcal{P}$ be a configuration of $n$ point in $d$-dimensional Euclidean space. A point $c_p$, not necessarily in $\mathcal{P}$, is a \emph{centerpoint} of $\mathcal{P}$, if no open half-space that omits $c_p$ contains more than $\frac{dn}{d+1}$ points of $\mathcal{P}$.
 
-% kiana: man be nazaram in tarif painie vase center point behtare
-% Behnam: bahat moafegham
 
 Given an $n$-point set $\mathcal{P}$ in $d$ dimensions, a point $c \in R^d$ is called a \emph{centerpoint} of $\mathcal{P}$ if any halfspace containing $c$ contains at least $\ceil{\frac{n}{d + 1}}$ points of $\mathcal{P}$. In other words, any halfspace (or convex set) that avoids a centerpoint can contain at most $\floor{\frac{dn}{d + 1}}$ points of $\mathcal{P}$.
 
@@ -152,7 +148,8 @@ Given an $n$-point set $\mathcal{P}$ in $d$ dimensions, a point $c \in R^d$ is c
 		\If{$p' \notin B$}
 			\State Insert $p'$ into $Q$
 			\If{$\card{Q} = z + 1$}
-				\State Remove from $Q$ a point $q$ which is closest to $p$.
+				\State $q$ $\gets$ closest point to $p$ in $Q$
+				\State Remove $q$ from $Q$.
 				\State $B \gets B(p, \card{pq})$
 			\EndIf
 		\EndIf
@@ -161,15 +158,16 @@ Given an $n$-point set $\mathcal{P}$ in $d$ dimensions, a point $c \in R^d$ is c
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
-Function \textproc{KnownPoint} in Algorithm~\ref{alg:1center}, takes a point $p$ as an argument which is guaranteed to be a non-outlier point in the optimal solution. To overcome the lack of knowledge about such a point, function \textproc{$1$-centerWithOutliers} tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and generates a ball for each, using function \textproc{KnownPoint}. It returns the ball with the minimum radius. Note that, due to space limitations inherent to streaming data model, the body of for-all loop in function \textproc{$1$-centerWithOutliers} run in parallel.
+Function \textproc{KnownPoint} in Algorithm~\ref{alg:1center}, takes a point $p$ as an argument which is guaranteed to be a non-outlier point in the optimal solution. To overcome the lack of knowledge about such a point, function \textproc{$1$-centerWithOutliers} tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and generates a ball for each, using function \textproc{KnownPoint}. It returns the ball with the minimum radius. Note that, due to space limitations inherent to streaming data model, the body of for-all loop in function \textproc{$1$-centerWithOutliers} runs in parallel.
 
 \begin{theorem}
 Algorithm~\ref{alg:1center} is a $2$-approximation algorithm for $1$-center problem with $z$ outliers, in any dimension.
 \end{theorem}
 
 \begin{proof}
-Let $B^*(c^*, r^*)$ be the optimal solution. Clearly, there exists a point $p$ among the first $z+1$ points of $\mathcal{P}$, which is not an outlier in the optimal solution. Since $p \in B^*$, then $\card{pp'} \le 2r^*$ for any point $p'\in B^*$. There is at least one point $q'$ among the $(z+1)$-furthest points from $p$ that is not an outlier in the optimal solution. Thus $\card{pq} \le \card{pq'} \le 2r^*$ and Algorithm~\ref{alg:1center} returns a valid solution of radius at most $2r^*$. So the proof is complete.
+Let $B^*(c^*, r^*)$ be the optimal solution. Clearly, there exists a point $p$ among the first $z+1$ points of $\mathcal{P}$, which is not an outlier in the optimal solution (Figure~\ref{fig:1center}). Since $p \in B^*$, then $\card{pp'} \le 2r^*$ for any point $p'\in B^*$. There is at least one point $q'$ among the $(z+1)$-furthest points from $p$ that is not an outlier in the optimal solution. Thus $\card{pq} \le \card{pq'} \le 2r^*$ and Algorithm~\ref{alg:1center} returns a valid solution of radius at most $2r^*$. So the proof is complete.
 \end{proof}
+
 
 \begin{figure}[h]
 	\centering
@@ -179,6 +177,7 @@ Let $B^*(c^*, r^*)$ be the optimal solution. Clearly, there exists a point $p$ a
 \end{figure}
 
 % Behnam: Aks be nazaram gooya nist ziad. va inke jaii behesh refrence dade nashode!
+%kiana: hagh ba behname. akse bedune refrence nadarim asan. montaha man benazaram kheili ehtiaji nis behesh asan 
 
 The space complexity of Algorithm~\ref{alg:1center} is $\cO(z^2 + zd)$, the update time is $\cO (z \log z + zd)$ and the query time is $\cO (z)$.
 If a non-outlier point $p$ is known then the space, update time and query time complexity of algorithm can be reduced by a factor of $z$.
@@ -190,7 +189,7 @@ If a non-outlier point $p$ is known then the space, update time and query time c
 \section{The $2$-Center Problem with $z$ Outliers}
 
 \begin{theorem}
-For any fixed $d > 1$, our single-pass data stream algorithm whose working space and update time are polynomial in $d$ and sub-linear in $n$ and returns two centers that guarantees a $(1.8 + \eps)$-approximation for the Euclidean $2$-center problem with outliers.
+For any fixed $d > 1$, our single-pass data stream algorithm whose working space and update time are polynomial in $d$ and sub-linear in $n$, returns two centers that guarantees a $(1.8 + \eps)$-approximation for the Euclidean $2$-center problem with outliers.
 \end{theorem}
 
 %--- from kim and ahn
@@ -198,7 +197,7 @@ For any fixed $d > 1$, our single-pass data stream algorithm whose working space
 In all the algorithms given in this section it is assumed that $p_1$ is a non-outlier point. It is not hard to see that, this limitation can be remedied by considering $\cO(z)$ parallel instances of the algorithm, similar to Algorithm~\ref{alg:1center}.
 % Behnam: Move this to upper section, this assumption can be used for previous algorithm
 
-In Section \ref{subsec:smaller}, we give a description of our algorithm for a given $r' > 0$ for the case where $\delta^* < C r^*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, our algorithm returns a $(1.8 + \eps)$-approximate solution. We explain how to find such an $r'$ and present a full description of our algorithm for the case where $\delta^* < C r^*$ in Subsection~\ref{subsec:findr}. Then we inspect the case where $\delta^* \ge C r^*$ in Subsection~\ref{subsec:bigger}.
+In Section \ref{subsec:smaller}, we give a description of our algorithm for a given $r' > 0$ for the case where $\delta^* < C r^*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, which returns a $(1.8 + \eps)$-approximate solution. We explain how to find such an $r'$ and present a full description of our algorithm for the case where $\delta^* < C r^*$ in Subsection~\ref{subsec:findr}. Then we inspect the case where $\delta^* \ge C r^*$ in Subsection~\ref{subsec:bigger}.
 
 
 \subsection{The Case $\delta^* < C r*$}
@@ -214,18 +213,18 @@ In each state the number of points that should be considered as outlier is unkno
 \Function{Known$r'$}{$\mathcal{P}, z, r'$}
 	\For{$(n_1, \dots, n_4) \gets \set{(n_1, \dots, n_4) \provided \sum n_i=z}$}
 		\State $CS \gets B(p_1,r')$.
-		\State $p_{o_2} \gets $ \Call{NthOutlier}{$n_1 + 1$}
+		\State $p_{o_2} \gets $ \Call{NthOutlier}{$n_1 + 1$, $p_1$}
 		\If{$p_{o_2}$ arrives}
 			\State $CS\gets$ the sub-case of $p_{o_2} \in B_{2, 1}^*$ $\cup$ the sub-case of $p_{o_2} \in B_{2,2}^*$.
 			\For{each case $S$}
-				\State $p_{o_3} \gets$ \Call{NthOutlier}{$n_2 + 1$}
+				\State $p_{o_3} \gets$ \Call{NthOutlier}{$n_2 + 1$, $p_{o_2}$}
 				\If{$p_{o_3}$ arrives} 
 					\State $CS\gets CS\setminus S$ $\cup$ the sub-case of $p_{o_3} \in B_{2, 1}^*$ $\cup$ the sub-case of $p_{o_3} \in B_{2,2}^*$.
 					\For {each sub-case $S'$} 
-						\State $p_{o_4} \gets$ \Call{NthOutlier}{$n_3 + 1$}
+						\State $p_{o_4} \gets$ \Call{NthOutlier}{$n_3 + 1$, $p_{o_3}$}
 						\If {$p_{o_4}$ arrives} 
 							\State Replace $S'$ with a new candidate solution.
-							\State $p_{o_5} \gets$ \Call{NthOutlier}{$n_4 + 1$}
+							\State $p_{o_5} \gets$ \Call{NthOutlier}{$n_4 + 1$, $p_{o_4}$}
 							\If{$p_{o_5}$ arrives}
 								\State Abandon the solution.
 							\EndIf
@@ -241,7 +240,7 @@ In each state the number of points that should be considered as outlier is unkno
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
-Here, \textproc{NthOutlier}$(n)$ returns the $n$\nth next point in $\mathcal{P}$ that does not lie in current candidate solution.
+Here, \textproc{NthOutlier}$(n,)$ returns the $n$\nth next point in $\mathcal{P}$ that does not lie in current candidate solution.
 
 \begin{theorem}
 Given $\delta^* < C r^*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, Algorithm~\ref{alg:smallc} uses $\cO (dz^3)$ space and returns a $(1.8+\eps)$-approximate solution. Algorithm~\ref{alg:smallc} spends $\cO (dz^3)$ update time for each point in $\mathcal{P}$ and answers a query in $\cO (dz^3)$.
