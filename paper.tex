@@ -79,7 +79,7 @@
 
 %----------------------- Title -----------------------------------------
 \title{Streaming $2$-Center with Outliers in High Dimension}
-\author{Hamid~Zarrabi-Zadeh\thanks{Department of Computer Engineering, 
+\author{Hamid~Zarrabi-Zadeh\thanks{De`partment of Computer Engineering, 
 	Sharif University of Technology. 
 	{\tt zarrabi@sharif.edu}}
 	\and 
@@ -108,24 +108,24 @@ In this paper we focus on streaming data model. In the streaming data model, inp
 In this paper our concern is about $2$-center problem in high dimensional Euclidean space.
 The formal definition of problem is as follows. Given sequence $\mathcal{S}$ of points in $d$ dimensional (for arbitrarily large $d$) Euclidean space, find two congruent balls of minimum radius, covering all but at most $z$ points.
 
-The problem without outliers (i.e., $z=0$) in general (Euclidean) space can not be approximated with a smaller than factor $2$ ($1.822$) unless $\mathbf{P}=\mathbf{NP}$ \cite{kim:6}.
-Gonzalez showed a $2$-approximation algorithm for this problem \cite{kim:17}.
+The problem without outliers (i.e., $z=0$) in general (Euclidean) space can not be approximated with a smaller than factor $2$ ($1.822$) unless $\mathbf{P}=\mathbf{NP}$ \cite{bern1996approximation}.
+Gonzalez showed a $2$-approximation algorithm for this problem \cite{gonzalez1985clustering}.
 For small $k$ and $d$, there are more efficient algorithms.
-For Euclidean $1$-center in fixed dimensions, Chazelle \etal{} gave a linear algorithm \cite{kim:12}.
-For $2$-center in the plane the best known algorithm, runs in $\cO(n \log^2 n \log^2 \log n)$ and linear space, given by Chan \cite{kim:8}.
+For Euclidean $1$-center in fixed dimensions, Chazelle~\etal gave a linear algorithm \cite{chazelle1996linear}.
+For $2$-center in the plane the best known algorithm, runs in $\cO(n \log^2 n \log^2 \log n)$ and linear space, given by Chan \cite{chan1999more}.
 
-In streaming data model, Guha \cite{kim:18}, in parallel with McCutchen \etal{} \cite{kim:22} gave $(2+\eps)$-approximation for $k$-center without outliers.
+In streaming data model, Guha \cite{guha2009tight}, in parallel with McCutchen~\etal \cite{mccutchen2008streaming} gave $(2+\eps)$-approximation for $k$-center without outliers.
 For small $k$, better algorithms are known. For fixed $d$, there exists an $\eps$-coreset for $1$-center with $\cO(1 / \eps^{\frac{d-1}{2}})$ space.
-For higher dimensions, Agarwal gave a $\frac{1+\sqrt{3}}{2}$-approximation for $1$-center problem, and Chan \cite{kim:10} reduced its approximation factor to $1.22$, by an improved analysis.
-For $k=2$, Ahn \etal{} \cite{ahn14} gave a $(2+\eps)$-approximation algorithm using $\cO(\frac{d}{\eps})$ space, which was improved for Euclidean spaces by Kim \etal{} \cite{kim14} to a $(1.8+\eps)$-approximation algorithm, using the same space.
+For higher dimensions, Agarwal gave a $(\frac{1+\sqrt{3}}{2})$-approximation for $1$-center problem, and Chan \cite{chan2004faster} reduced its approximation factor to $1.22$, by an improved analysis.
+For $k=2$, Ahn~\etal ~\cite{ahn2014computing} gave a $(2+\eps)$-approximation algorithm using $\cO(\frac{d}{\eps})$ space, which was improved for Euclidean spaces by Kim ~\etal \cite{kim2014improved} to a $(1.8+\eps)$-approximation algorithm, using the same space.
 
-For the problem of $k$-center with outliers, Charikar \etal{} \cite{zarrabi:8} gives the first offline algorithm with approximation factor $3$ ($4$), where the candidate center points of the centers can be enumerated (otherwise).
-For small $k$, there are better results known. $1$-center with $z$ outliers can be solved in $\cO(n \log z + z^{3} n^{\eps})$, for any $\eps > 0$, using Matou{\v{s}}ek's framework \cite{on-geometric-optimization-with-few-violated-constraints}.
-Agarwal \cite{an efficient algorithm for 2d euclidean 2-center with outliers} gives an algorithm with running time $\cO(n z^{7} \log^3 z)$ for $2$-center problem in $\IR^2$.
+For the problem of $k$-center with outliers, Charikar ~\etal \cite{charikar2001algorithms} gives the first offline algorithm with approximation factor $3$ ($4$), where the candidate center points of the centers can be enumerated (otherwise).
+For small $k$, there are better results known. $1$-center with $z$ outliers can be solved in $\cO(n \log z + z^{3} n^{\eps})$, for any $\eps > 0$, using Matou{\v{s}}ek's framework \cite{matouvsek1995geometric}.
+Agarwal \cite{agarwal2008efficient} gives an algorithm with running time $\cO(n z^{7} \log^3 z)$ for $2$-center problem in $\IR^2$.
 
-For the problem of $k$-center with $z$ outliers in streaming data model, McCutchen \etal{} \cite{zarrabi:14} (using idea in Charikar \etal{} \cite{zarrabi:8} as subroutine) give a $(3+\eps)$-approximation ($(4+\eps)$-approximation, depending on the used subroutine) algorithm using $\cO(\frac{zk}{\eps})$ space.
-In special case of $k=1$ in fixed dimensions, there exists a streaming algorithm with $\cO(\frac{z}{\eps^{\cO(d)}})$ space \cite{zarrabi:4, zarrabi:15}.
-For Euclidean spaces, Zarrabi-Zadeh gave $(1.22 \sqrt{2})$\nobreakdash-approximation for $1$-center with $z$ outliers running in $\cO(?)$ space.
+For the problem of $k$-center with $z$ outliers in streaming data model, McCutchen ~\etal \cite{mccutchen2008streaming} (using idea in Charikar ~\etal \cite{charikar2001algorithms} as subroutine) give a $(3+\eps)$-approximation ($(4+\eps)$-approximation, depending on the used subroutine) algorithm using $\cO(\frac{zk}{\eps})$ space.
+In special case of $k=1$ in fixed dimensions, there exists a streaming algorithm with $\cO(\frac{z}{\eps^{\cO(d)}})$ space \cite{agarwal2007space, zarrabi2011almost}.
+For Euclidean spaces, Zarrabi-Zadeh \cite{zarrabi2009streaming} gave $(1.22 \sqrt{2})$\nobreakdash-approximation for $1$-center with $z$ outliers running in $\cO(?)$ space.
 
 In this paper we first give a simple $2$-approximation algorithm for $1$-center problem with space complexity $\cO(z^2 + zd)$. We then show a $(1.8 + \eps)$-approximation streaming algorithm for $2$-center with $z$ outliers in Euclidean space, with space complexity polynomial in $z$ and $d$ and sub-linear in $n$.
 
@@ -560,6 +560,14 @@ Our algorithm uses $\cO(zS(n, z, d) + \frac{dz^4}{\eps})$ space and has time com
 \begin{proof}
 Result follows immediately from Theorems~\ref{thm:1st-cmplx} and \ref{thm:2nd-cmplx} and the fact that $p_1$ was assumed to be a non-outlier.
 \end{proof}
+
+
+%---------------------------- Conclusions ---------------------
+
+\section{Conclusions}
+\label{sec:conc}
+
+In this paper, we presented an $(1.8 + \eps)$-approximation straming algorithm for $2$-center with $z$-outlier in euclidean space, which improves previous $3+\eps$-approximation algorithm by Charikar~\etal ~\cite{mccutchen2008streaming}. It remains open whether there can be any improvements in algorithm approximation factor. It is intresting problem to find an algorithm with better approximation factor and/or space complexity. It is also intresting to see if this algorithm can be generalized to a $k$-center with outliers in streaming data model with the same approximation factor (even for small $k$).  
 
 %--------------- BIBS --------------------
 
