@@ -1,0 +1,38 @@
+offline, z=0:
+	lb: 1.822,	[Kim:6]
+	ub: 2		[Kim:17]
+offline, z=0, k=1:
+	[Kim:12]
+offline, z=0, k=2, d=2:
+	[Kim:8]
+offline, z=0, k=2:
+	?
+
+streaming, z=0:
+	(2+\eps) [Kim:18][Kim:22]
+streaming, z=0, k=1, small-d:
+	(1+\eps apprx using 1/\eps^{(d-1)/2})
+streaming, z=0, k=1, high-d:
+	[Kim:4], improved analysis by [Kim:10]
+streaming, z=0, k=2:
+	(2 apprx) Kim,Ahn
+streaming, z=0, k=2, euclid:
+	(1.8 apprx) Kim
+
+
+
+offline, z>0:
+	(3,4-apprx) [Charikar]
+offline, z>0, k=1:
+	[P.Agarwal:19]
+offline, z>0, k=2, d=2:
+	an efficient algorithm for 2d euclidean 2-center with outliers, 2008
+
+streaming, z>0:
+	[Zarrabi:14]
+streaming, z>0, k=1, small-d:
+	[Zarrabi:4,15]
+streaming, z>0, k=1, euclid:
+	[Zarrabi]
+streaming, z>0, k=2, euclid:
+	us
