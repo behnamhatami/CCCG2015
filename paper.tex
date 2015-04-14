@@ -101,9 +101,12 @@
 % ---------------------- Introduction ---------------------------------
 
 \section{Introduction}
+Metric $k$-center problem -- covering a set of point with $k$ congruent balls of minimum radius -- is a fundamental problem in computer science and has various applications in data mining and image processing.
+One of $k$-center problem variants is $k$-center with $z$-outlier which finds $k$ congruent balls with minimum radius covering all but $z$ points of a point set. In real world applications, due to commonness of noisy data, it is important to consider outlier points. Because even a small number of outliers ($\cO(k)$) can increase the radius of $k$-center problem unboundedly.
+In this paper we focus on streaming data model. In the streaming data model, input arrives as a sequence and there is not enough space to keep the whole data set. Algorithms in this model have limitations in space (typically sub-linear in input size) and processing time per item. This model is specially suitable for massive data sets, due the its sub-linear space complexity \cite{aggarwal2007data}.
 
-
-
+In this paper our concern is about $2$-center problem in high dimensional Euclidean space.
+The formal definition of problem is as follows. Given sequence $\mathcal{S}$ of points in $d$ dimensional (for arbitrarily large $d$) Euclidean space, find two congruent balls of minimum radius, covering all but at most $z$ points.
 
 
 % ---------------------------- Preliminaries -------------------------------
