@@ -95,7 +95,7 @@
 % ---------------------- Abstract --------------------------------------
 
 \begin{abstract}
-
+In this paper, we study the $2$-center streaming problem with $z$ outliers in a general space, which means finding two congruent balls covering all the points except $z$ outliers in a streaming work-space. Before considering this problem, we provide a  $2$-approximation algorithm for $1$-center with $z$ outliers in a general space. Our algorithm for the $2$-center problem uses an update time and working space polynomial in $d$ and sub-linear in $n$ to calculate a $(1.8+\eps)$-approximation solution.
 \end{abstract}
 
 % ---------------------- Introduction ---------------------------------
@@ -103,12 +103,9 @@
 \section{Introduction}
 Metric $k$-center problem -- covering a set of point with $k$ congruent balls of minimum radius -- is a fundamental problem in computer science and has various applications in data mining and image processing.
 One of $k$\nobreakdash-center problem variants is $k$-center with $z$-outlier which finds $k$ congruent balls with minimum radius covering all but $z$ points of a point set. In real world applications, due to commonness of noisy data, it is important to consider outlier points. Because even a small number of outliers ($\cO(k)$) can increase the radius of $k$\nobreakdash-center problem unboundedly.
-In this paper we focus on streaming data model. In the streaming data model, input arrives as a sequence and there is not enough space to keep the whole data set. Algorithms in this model have limitations in space (typically sub-linear in input size) and processing time per item. This model is specially suitable for massive data sets, due the its sub-linear space complexity \cite{aggarwal2007data}.
+In this paper we focus on streaming data model. In the streaming data model, input data arrives as a sequence and there is not enough space to keep the whole data set. Algorithms in this model have limitations in space (typically sub-linear in input size) and processing time per item. This model is specially suitable for massive data sets, due to its sub-linear space complexity \cite{aggarwal2007data}.
 
-In this paper our concern is about $2$-center problem in high dimensional Euclidean space.
-The formal definition of problem is as follows. Given sequence $\mathcal{S}$ of points in $d$ dimensional Euclidean space (for arbitrarily large $d$), find two congruent balls of minimum radius, covering all but at most $z$ points.
-
-$k$-center problem without outliers (i.e., $z=0$) in general (Euclidean) space can not be approximated with a smaller factor than $2$ ($1.822$), unless $\mathbf{P}=\mathbf{NP}$ \cite{bern1996approximation}.
+The $k$-center problem without outliers (i.e., $z=0$) in general (Euclidean) space can not be approximated with a smaller factor than $2$ ($1.822$), unless $\mathbf{P}=\mathbf{NP}$ \cite{bern1996approximation}.
 Gonzalez~\cite{gonzalez1985clustering} showed a $2$-approximation algorithm for general case of the problem.
 For small $k$ and $d$, there are more efficient algorithms.
 For Euclidean $1$-center in fixed dimensions, Chazelle~\etal~\cite{chazelle1996linear} gave a linear algorithm.
@@ -123,12 +120,16 @@ For the problem of $k$-center with outliers, Charikar~\etal~\cite{charikar2001al
 For small $k$, there are better results known. $1$-center with $z$ outliers can be solved in $\cO(n \log n + z^{3} n^{\eps})$, for any $\eps > 0$, using Matou{\v{s}}ek's framework \cite{matouvsek1995geometric}.
 Agarwal \cite{agarwal2008efficient} gives a randomized $\cO(n z^{7} \log^3 z)$-time algorithm for $2$-center problem in $\IR^2$.
 
-For the problem of $k$-center with $z$ outliers in streaming data model, McCutchen~\etal~\cite{mccutchen2008streaming} (using idea in Charikar~\etal \cite{charikar2001algorithms} as subroutine) give a $(3+\eps)$-approximation ($(4+\eps)$-approximation, depending on the used subroutine) algorithm using $\cO(\frac{zk}{\eps})$ space.
+For the problem of $k$-center with $z$ outliers in streaming data model, McCutchen~\etal~\cite{mccutchen2008streaming} (using the idea in Charikar~\etal \cite{charikar2001algorithms} as subroutine) give a $(3+\eps)$-approximation ($(4+\eps)$-approximation, depending on the used subroutine) algorithm using $\cO(\frac{zk}{\eps})$ space.
 In special case of $k=1$ in fixed dimensions, there is a streaming $\cO(\frac{z}{\eps^{\cO(d)}})$-space algorithm \cite{agarwal2007space, zarrabi2011almost}.
 For Euclidean spaces, Zarrabi-Zadeh \cite{zarrabi2009streaming} gave $(1.22 \times \sqrt{2})$\nobreakdash-approximation for $1$-center with $z$ outliers running in $\cO(dz^3 + (\frac{d}{\eps^3})\log(\frac{1}{\eps}))$ space and poly$(d)$ update time .
 
-In this paper we first give a simple $2$-approximation algorithm for $1$-center problem with space complexity $\cO(z^2 + zd)$. We then show a $(1.8 + \eps)$-approximation streaming algorithm for $2$-center with $z$ outliers in Euclidean space, with space complexity polynomial in $z$ and $d$ and sub-linear in $n$.
+In this paper our concern is about $2$-center problem in high dimensional Euclidean space.
+The formal definition of problem is as follows. Given sequence $\mathcal{S}$ of points in $d$ dimensional Euclidean space (for arbitrarily large $d$), find two congruent balls of minimum radius, covering all but at most $z$ points. In Section~\ref{sec:2apr}, we give a simple $2$-approximation algorithm for $1$-center problem with space complexity $\cO(z^2 + zd)$. In the next section, we show a $(1.8 + \eps)$-approximation streaming algorithm for $2$-center with $z$ outliers in Euclidean space, and its space complexity is polynomial in $z$ and $d$ and sub-linear in $n$. In Section~\ref{subsec:smaller} we run $z + 1$ parallel instances of the algorithm in order to find the first non-outlier point.
+%Kiana: man ino neveshtam vali manzuretun in bud raje be parallel budan az in bishtar begim yani? yekam ziadi tekrar nemishe?
 
+
+% Kiana: I think first we should mention what others have done and then start declaring our problem. That's why I changed the location of the previous paragraph.
 
 
 % ---------------------------- Preliminaries -------------------------------
@@ -145,12 +146,13 @@ Two congruent balls $B_1$ and $B_2$ with radius $r$ are said to be \emph{$C$-sep
 %Let $\mathcal{P}$ be a configuration of $n$ point in $d$-dimensional Euclidean space. A point $c_p$, not necessarily in $\mathcal{P}$, is a \emph{centerpoint} of $\mathcal{P}$, if no open half-space that omits $c_p$ contains more than $\frac{dn}{d+1}$ points of $\mathcal{P}$.
 
 
-Given an $n$-point set $\mathcal{P}$ in $d$-dimensional Euclidean space, a point $c \in \IR^d$ is called a \emph{centerpoint} of $\mathcal{P}$ if any halfspace containing $c$, contains at least $\ceil{\frac{n}{d + 1}}$ points of $\mathcal{P}$. In other words, any halfspace (or convex set) that avoids a centerpoint can contain at most $\floor{\frac{dn}{d + 1}}$ points of $\mathcal{P}$.
+Given an $n$-point set $\mathcal{P}$ in $d$-dimensional Euclidean space, a point $c \in \IR^d$ is called a \emph{centerpoint} of $\mathcal{P}$ if any halfspace containing $c$, contains at least $\ceil{\frac{n}{d + 1}}$ points of $\mathcal{P}$. In other words, any halfspace (or convex set) that avoids a centerpoint can contain at most $\floor{\frac{dn}{d + 1}}$ points of $\mathcal{P}$. 
 
 
 %-------------------------- 1-center ---------------------------------
 
 \section{A Simple $2$-Approximation Algorithm for $1$-Center with Outliers}
+\label{sec:2apr}
 
 \begin{algorithm}
 \label{alg:1center}
@@ -193,17 +195,18 @@ Algorithm~\ref{alg:1center} is a $2$-approximation algorithm for $1$-center prob
 Let $B^*(c^*, r^*)$ be the optimal solution. Clearly, there exists a point $p$ among the first $z+1$ points of $\mathcal{P}$, which is not an outlier in the optimal solution (Figure~\ref{fig:1center}). Since $p \in B^*$, then $\card{pp'} \le 2r^*$ for any point $p'\in B^*$. There is at least one point $q'$ among the $(z+1)$-furthest points from $p$ that is not an outlier in the optimal solution. Thus $\card{pq} \le \card{pq'} \le 2r^*$ and Algorithm~\ref{alg:1center} returns a valid solution of radius at most $2r^*$. So the proof is complete.
 \end{proof}
 
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=17em]{figs/one-center}
-	\caption{Output of Algorithm~\ref{alg:1center}}
-	\label{fig:1center}
-\end{figure}
+%
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[width=17em]{figs/one-center}
+%	\caption{Output of Algorithm~\ref{alg:1center}}
+%	\label{fig:1center}
+%\end{figure}
 
 % Behnam: Aks be nazaram gooya nist ziad. va inke jaii behesh refrence dade nashode!
 % Kiana: hagh ba behname. akse bedune refrence nadarim asan. montaha man benazaram kheili ehtiaji nis behesh asan 
 % Sahand: hazf konim ya pishnehadi baray e behboodesh darid?
+% Kiana: Man be nazaram vaghean chon kheili az idehaye basic ham baraye gheire streaming hamine va osulan idash yekam badihitowre hazf beshe. felan commentesh kardam age nazaretun chize digei bud avazesh konin.
 
 The space complexity of Algorithm~\ref{alg:1center} is $\cO(z^2 + zd)$, the update time is $\cO (z \log z + zd)$ and the query time is $\cO (z)$.
 If a non-outlier point $p$ is known then the space, update time and query time complexities of Algorithm~\ref{alg:1center} can be reduced by a factor of $z$.
@@ -401,7 +404,7 @@ Function \textproc{AddTo$B_1$} is used to add a point $p$ to $B_1$. The point wi
 
 Function \textproc{AddTo$B_2$} is used to add a point $p$ to $B_2$. Initially, $B_2$ is empty and $c_2$ and $r_c$ are not initialized. When an appropriate candidate is found, Algorithm~\ref{alg:case2} sets $c_2$ to that candidate and $r_c$ to $\frac{2\card{c_1c_2}}{C}$ and after that, points are added to $B_2$ only if they lie within $r_c$-radius of $c_2$. At this point $c_2$ is considered as the candidate point $c_p$. Clearly the subdivision property for $B_2$ holds initially when $B_2$ consists of the single point $c_2$. All the subsequent points added to $B_2$ are within $r_c$-radius of $c_2$ and given $C\ge 7$, by Observation~\ref{obs:intersection} subdivision property is invariant under this operation.
 
-When $\card{B_2}$ reaches $(d+1)(z+1)$, the candidate point changes to center point of $B_2$ and $r_c$ is increased by a factor of $(2 + \frac{2}{C})$ to completly cover the new candidate point and it's surronding ball. It is easy to see that $(2 + \frac{2}{C})r_c < \frac{\delta}{2}$ provided $C \ge 14$ and thus by Observation~\ref{obs:intersection} the property is not violated.
+When $\card{B_2}$ reaches $(d+1)(z+1)$, the candidate point changes to center point of $B_2$ and $r_c$ is increased by a factor of $(2 + \frac{2}{C})$ to completely cover the new candidate point and it's surrounding ball. It is easy to see that $(2 + \frac{2}{C})r_c < \frac{\delta}{2}$ provided $C \ge 14$ and thus by Observation~\ref{obs:intersection} the property is not violated.
 
 \begin{algorithmic}
 \Function{AddTo$B_2$}{p}
@@ -432,7 +435,7 @@ Every finite set of points in $d$\nobreakdash-dimensional Euclidean space admits
 Given a set $\mathcal{P}$ of $k(d+1)$ points in $d$\nobreakdash-dimensional Euclidean space, there is a point $c_p$, not necessarily in $\mathcal{P}$, that any convex object that does not cover $c_p$, leaves at least $k$ points of $\mathcal{P}$ uncovered.
 \end{cor}
 
-Let the new candidate point be the centerpoint of points in $B_2$, when $(z+1)(d+1)$ points have been added to $B_2$. We claim that with $B_2 = B(c_2, (2 + \frac{2}{C})r_c)$, ball $B(c_p, \frac{2\card{c_1c_p}}{C})$ completly covered.
+Let the new candidate point be the centerpoint of points in $B_2$, when $(z+1)(d+1)$ points have been added to $B_2$. We claim that with $B_2 = B(c_2, (2 + \frac{2}{C})r_c)$, ball $B(c_p, \frac{2\card{c_1c_p}}{C})$ completely covered.
 If $c_p \in B_{2,2}^*$ then by Observation~\ref{obs:c+4}, $r^* \le \frac{\card{c_1c_p}}{C}$. Thus $B_{2,2}^* \subseteq B(c_p, \frac{2\card{c_1c_p}}{C})$.
 Since:
 \[
@@ -456,7 +459,7 @@ As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As 
 \end{itemize}
 
 {
-\algrenewcommand\algorithmicindent{0.8em}%
+\algrenewcommand\algorithmicindent{0.6em}%
 \begin{algorithm}
 \label{alg:case2}
 \leavevmode
@@ -470,8 +473,9 @@ As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As 
 		\State $q \gets c_1$
 	\EndIf
 	\State $\delta \gets \frac{C}{C+4} \card{c_1q}$
-	\If{!\Call{AddTo$B_1$}{$p$} and !\Call{AddTo$B_2$}{$p$}}
+	\If{\Call{AddTo$B_1$}{$p$} = False and  \Call{AddTo$B_2$}{$p$} = False}
 % Sahand: is ! a familiar notation for CS people? should we use \neg? or not?
+% Kiana: Agree, What about this one?
 		\State add $p$ to Buffer
 		\While{$\card{\mbox{Buffer}} > z$}
 			\If{$\card{B_2} \ge (d+1)(z+1)$}
@@ -548,6 +552,7 @@ Suppose that our data structure for maintaining $B_1$, $B_2$ and $B_u$ uses $S(n
 \label{thm:2nd-cmplx}
 Space complexity of Algorithm~\ref{alg:case2} is $\cO(dz+S(n,z,d))$. It takes $\cO^*(dzT(n,z,d))$ time for update. Query time in Algorithm~\ref{alg:query} is $\cO(zQ(n,z,d) + dz(dz+zQ_o(zd,z,d)))$ and it returns two centers that guarantee a $(1.8 + \eps)$-approximation for $2$-center problem with outliers.
 % Sahand: Our analysis requires that $\beta \le 1.8+\eps$. Should we mention that somewhere? Someone might suspect using a worse approximation algorithm for 1-center he can achieve the same result with better time complexity.
+% Kiana: I don't think so.
 \end{theorem}
 
 \begin{proof}
