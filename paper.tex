@@ -4,28 +4,42 @@
 \usepackage{amssymb,amsmath}
 \usepackage[mathscr]{euscript}
 
-\usepackage{graphicx}
 \usepackage{caption,subcaption}
+\usepackage{booktabs,multirow}
 
-\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
 
-
-%----------------------- Environments --------------------------
-\newtheorem{corollary}{Corollary} 
-\newtheorem{problem}{Problem}
-\newtheorem{algorithm}{Algorithm}
-\newtheorem{definition}{Definition}
-
+\usepackage{cleveref}
 
 %------------------------ Paper Notations -----------------------------
-\DeclareMathOperator*{\argmin}{arg\,min}
 
+\newcommand{\rc}{r}
+\newcommand{\cp}{c_p}
+\newcommand{\dz}{(d + 1)(z + 1)}
+\newcommand{\Buffer}{\ensuremath{\text{Buffer}}}
+
+\renewcommand{\O}{\ensuremath{{O}}} 
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\nd}{\nobreakdash-}
+
+
+%----------------------- Page Style -----------------------------------------
+
+\renewcommand{\arraystretch}{1.3}
+
+%----------------------- Environments --------------------------
+
+\newtheorem{problem}{Problem}
+\newtheorem{definition}{Definition}
+
+%------------------------ Algorithm -----------------------------
+
+\newcommand{\textproc}{\textsc}
+\newcommand{\Call}[2]{\textsc{#1}(#2)}
+\renewcommand{\algorithmicforall}{{\bf for each}}
 
 %-------------------------- Notations ------------------------------------
-\newcommand{\cO}{\ensuremath{{\rm O}}}
-\newcommand{\st}{\textsuperscript{\textit{st}} }
-\newcommand{\nd}{\textsuperscript{\textit{nd}} }
-\newcommand{\nth}{\textsuperscript{\textit{th}} }
 
 \newcommand{\IN}{\ensuremath{\mathbb{N}}} 
 \newcommand{\IZ}{\ensuremath{\mathbb{Z}}} 
@@ -39,8 +53,9 @@
 \newcommand{\ceil}[1]{\left\lceil{#1}\right\rceil}
 \newcommand{\floor}[1]{\left\lfloor{#1}\right\rfloor}
 \newcommand{\card}[1]{\left|{#1}\right|}
+\newcommand{\len}[1]{\|{#1}\|}
 \newcommand{\setcomp}[1]{\overline{#1}}
-\newcommand{\provided}{\,:\,}
+\newcommand{\provided}{\,|\,}
 
 \newcommand{\poly}{\mathop{\mathrm{poly}}}
 \newcommand{\polylog}{\mathop{\mathrm{\scriptsize polylog}}}
@@ -65,7 +80,8 @@
 \newcommand{\etal}{{\em et~al.\/}}
 \newcommand{\REM}[1]{}
 \newcommand{\qed}{}
-\newcommand {\backspace}{\vspace{-3em}\\}
+\newcommand{\backspace}{\vspace{-3em}\\}
+
 
 \newcommand{\linprog}[6]{
   \begin{alignat}{2}
@@ -78,15 +94,21 @@
 
 
 %----------------------- Title -----------------------------------------
-\title{Streaming $2$-Center with Outliers in High Dimension}
-\author{Hamid~Zarrabi-Zadeh\thanks{Department of Computer Engineering, 
+
+\title{A Streaming Algorithm for 2-Center with Outliers in High Dimensions}
+%\title{Computing 2-Center with Outliers on High-Dimensional Data Streams}
+\author{Behnam~Hatami\thanks{Department of Computer Engineering, 
+	Sharif University of Technology.
+	{\tt hatami@ce.sharif.edu}}
+	\and 
+	Hamid~Zarrabi-Zadeh\thanks{Department of Computer Engineering, 
 	Sharif University of Technology.
 	{\tt zarrabi@sharif.edu}}
-	\and 
 }
 
 
 %------------------------------ Text -------------------------------------
+
 \begin{document}
 
 \maketitle
@@ -95,121 +117,352 @@
 % ---------------------- Abstract --------------------------------------
 
 \begin{abstract}
-In this paper, we study the $2$-center streaming problem with $z$ outliers in a Euclidean space, which means finding two congruent balls covering all the points except $z$ outliers in a streaming work-space. Before considering this problem, we provide a  $2$-approximation algorithm for $1$-center with $z$ outliers in a general space. Our algorithm for the $2$-center problem uses an update time and working space polynomial in $d$ and sub-linear in $n$ to calculate a $(1.8+\eps)$-approximation solution.
+We study the Euclidean 2-center problem with outliers in the data stream model. 
+Given a stream of points in arbitrary $d$ dimensions, the goal is to find two congruent balls 
+of minimum radius covering all but $z$ points. 
+We provide a $(1.8+\eps)$-approximation streaming algorithm for the problem, 
+improving upon the previous $(4 + \eps)$-approximation algorithm available for the problem.
+The space complexity and update time of our algorithm is $\poly(d, z, {1 \over \eps})$,
+independent of the size of the stream.
 \end{abstract}
 
 % ---------------------- Introduction ---------------------------------
 
 \section{Introduction}
-Metric $k$-center problem -- covering a set of point with $k$ congruent balls of minimum radius -- is a fundamental problem in computer science and has various applications in data mining and image processing.
-One of $k$\nobreakdash-center problem variants is $k$-center with $z$-outlier which finds $k$ congruent balls with minimum radius covering all but $z$ points of a point set. In real world applications, due to commonness of noisy data, it is important to consider outlier points. Because even a small number of outliers ($\cO(k)$) can increase the radius of $k$\nobreakdash-center problem unboundedly.
-In this paper we focus on streaming data model. In the streaming data model, input data arrives as a sequence and there is not enough space to keep the whole data set. Algorithms in this model have limitations in space (typically sub-linear in input size) and processing time per item. This model is specially suitable for massive data sets, due to its sub-linear space complexity \cite{aggarwal2007data}.
+The $k$-center problem---covering a set of points 
+using $k$ congruent balls of minimum radius---is a fundamental problem,
+arising in many applications 
+such as data mining, unsupervised learning, statistics, and image processing.
+In real-world applications, where input data is often noisy, 
+it is very important to consider outliers, 
+as even a small number of outliers can greatly affect the quality of the solution.
+The $k$-center problem is particularly very sensitive to outliers,
+and even a constant number of outliers can increase the radius of the $k$-center unboundedly.
+Therefore, it is natural to consider the following generalization of
+the the $k$-center problem: % which we call \emph{$k$-center with $z$ outliers}:
+given a set $P$ of $n$ points in arbitrary $d$ dimensions, 
+find $k$ congruent balls of minimum radius 
+to cover at least $n - z$ points of $P$.
+%One of $k$-center problem variants is $k$-center with $z$-outlier which finds $k$ congruent balls with minimum radius covering all but $z$ points of a point set. 
 
-The $k$-center problem without outliers (i.e., $z=0$) in general (Euclidean) space can not be approximated with a smaller factor than $2$ ($1.822$), unless $\mathbf{P}=\mathbf{NP}$ \cite{bern1996approximation}.
-Gonzalez~\cite{gonzalez1985clustering} showed a $2$-approximation algorithm for general case of the problem.
-For small $k$ and $d$, there are more efficient algorithms.
-For Euclidean $1$-center in fixed dimensions, Chazelle~\etal~\cite{chazelle1996linear} gave a linear algorithm.
-For $2$\nobreakdash-center in the plane the best known algorithm, given by Chan \cite{chan1999more}, runs in $\cO(n \log^2 n \log^2 \log n)$ and linear space.
+In this paper, we focus on the \emph{data stream model}
+where only a single pass over the input data is allowed,
+and we have only a limited amount of working space available.
+%which is typically sublinear in the input size.
+This model is specially useful for processing large data sets,
+as it does not need the entire data set to be stored in memory.
 
-In streaming data model, Guha \cite{guha2009tight}, in parallel with McCutchen~\etal~\cite{mccutchen2008streaming} gave $(2+\eps)$-approximation for $k$-center without outliers with $\cO((\frac{dk}{\eps}) \log(\frac{1}{\eps}))$ space.
-For small $k$, better algorithms are known. For fixed $d$, there exists an $\eps$\nobreakdash-coreset for $1$-center with $\cO(\frac{1}{\eps^{\frac{d-1}{2}}})$ space.
-For higher dimensions, Agarwal~\etal~\cite{agarwal2010streaming} gave a $(\frac{1+\sqrt{3}}{2})$-approximation for $1$\nobreakdash-center problem with $\cO((\frac{d}{\eps^3})\log(\frac{1}{\eps}))$ space and and update time, and Chan~\etal~\cite{chan2014streaming} reduced its approximation factor to $1.22$, by an improved analysis.
-For $k=2$, Ahn~\etal~\cite{ahn2014computing} gave a $(2+\eps)$-approximation algorithm using $\cO(\frac{d}{\eps})$ space and update time, which was improved for Euclidean spaces by Kim~\etal~\cite{kim2014improved} to a $(1.8+\eps)$-approximation algorithm, using the same space and update time complexity.
+%In this model, input data arrives as a sequence over time, 
+%%only one pass over the input data is allowed, 
+%and we have only a limited amount of working space available, 
+%which is typically sublinear in the input size.
+%and thus, we cannot keep the entire data set in memory.
+%This makes designing streaming algorithms very challenging,
+%%as we can have only one pass over the input data, 
+%%and must decide on the fly which data to keep in our limited working space,
+%as we cannot keep the entire data set in memory,
+%and must be still able to produce a solution comparable to 
+%that of an offline algorithm that has unlimited access to the whole data set.
 
-For the problem of $k$-center with outliers, Charikar~\etal~\cite{charikar2001algorithms} gives the first offline algorithm with approximation factor $3$ ($4$), where the candidate center points of the centers can be enumerated (otherwise).
-For small $k$, there are better results known. $1$-center with $z$ outliers can be solved in $\cO(n \log n + z^{3} n^{\eps})$, for any $\eps > 0$, using Matou{\v{s}}ek's framework \cite{matouvsek1995geometric}.
-Agarwal \cite{agarwal2008efficient} gives a randomized $\cO(n z^{7} \log^3 z)$-time algorithm for $2$-center problem in $\IR^2$.
+The Euclidean $k$-center problem has been extensively studied in the literature.
+%There is a considerable amount of work on the geometric $k$-center problem.
+If $k$ is part of the input,
+the problem in known to be NP-hard in two or more dimensions~\cite{fowler1981optimal},
+and is even hard to approximate to within a factor close to 2, 
+unless P$\,=\,$NP~\cite{feder1988optimal}.
+Factor-2 approximation algorithms are available for the problem 
+in any dimension~\cite{gonzalez1985clustering,feder1988optimal}.
+%The $k$-center problem without outliers (i.e., $z=0$) in general (Euclidean) space can not be approximated with a smaller factor than $2$ ($1.822$), unless $\mathbf{P}=\mathbf{NP}$~\cite{bern1996approximation}.
+%Gonzalez~\cite{gonzalez1985clustering} showed a $2$-approximation algorithm for general case of the problem.
+For small $k$ and $d$, %there are more efficient algorithms.
+better solutions are available.
+The 1-center problem in fixed dimensions is known to be LP-type 
+and can be solved in $O(n)$ time~\cite{chazelle1996linear}.
+For 2-center in the plane, the current best algorithm
+runs in $\O(n \log^2 n \log^2 \log n)$ time~\cite{chan1999more}.
 
-For the problem of $k$-center with $z$ outliers in streaming data model, McCutchen~\etal~\cite{mccutchen2008streaming} (using the idea in Charikar~\etal \cite{charikar2001algorithms} as subroutine) give a $(3+\eps)$-approximation ($(4+\eps)$-approximation, depending on the used subroutine) algorithm using $\cO(\frac{zk}{\eps})$ space.
-In special case of $k=1$ in fixed dimensions, there is a streaming $\cO(\frac{z}{\eps^{\cO(d)}})$-space algorithm \cite{agarwal2007space, zarrabi2011almost}.
-For Euclidean spaces, Zarrabi-Zadeh \cite{zarrabi2009streaming} gave $(1.22 \times \sqrt{2})$\nobreakdash-approximation for $1$-center with $z$ outliers running in $\cO(dz^3 + (\frac{d}{\eps^3})\log(\frac{1}{\eps}))$ space and poly$(d)$ update time .
 
-In this paper our concern is about $2$-center problem in high dimensional Euclidean space.
-The formal definition of problem is as follows. Given sequence $\mathcal{S}$ of points in $d$ dimensional Euclidean space (for arbitrarily large $d$), find two congruent balls of minimum radius, covering all but at most $z$ points. In Section~\ref{sec:2apr}, we give a simple $2$-approximation algorithm for $1$-center problem with space complexity $\cO(z^2 + zd)$. In the next section, we show a $(1.8 + \eps)$-approximation streaming algorithm for $2$-center with $z$ outliers in Euclidean space, and its space complexity is polynomial in $z$ and $d$ and sub-linear in $n$. In Section~\ref{subsec:smaller} we run $z + 1$ parallel instances of the algorithm in order to find the first non-outlier point.
-%Kiana: man ino neveshtam vali manzuretun in bud raje be parallel budan az in bishtar begim yani? yekam ziadi tekrar nemishe?
+For $k$-center with outliers, Charikar~\etal~\cite{charikar2001algorithms} 
+gave the first algorithm with an approximation factor of $3$, 
+that works in any dimension.
+%which is improvable to 3, if all candidate center points can be enumerated.
+%depending on whether the candidate center points can be enumerated or not, respectively.
+Better results are known for small $k$ in the plane.
+The 1-center problem with $z$ outliers in the plane can be solved 
+in $\O(n \log n + z^{3} n^{\eps})$ time, for any $\eps > 0$, 
+using Matou{\v{s}}ek's framework~\cite{matouvsek1995geometric}.
+Agarwal~\cite{agarwal2008efficient} gave a randomized 
+$\O(n z^{7} \log^3 z)$-time algorithm for 2-center with $z$ outliers in the plane.
+
+In the streaming model, McCutchen~\etal~\cite{mccutchen2008streaming} 
+and Guha~\cite{guha2009tight} presented algorithms to maintain $(2+\eps)$-approximation 
+to the $k$-center problem in %in any metric space using 
+$\O(\frac{kd}{\eps} \log \frac{1}{\eps})$ space.
+For $k=1$, %better algorithms are known. % in high dimensions.
+%a $1.5$-approximation in high dimensions was presented by Zarrabi-Zadeh and Chan~\cite{zarrabi2006simple}.
+a factor-$((1+\sqrt{3})/{2})$ approximation 
+was presented by Agarwal and Sharathkumar~\cite{agarwal2010streaming} 
+in high dimensions, using $O(d)$ space. 
+The approximation factor was later improved 
+%to $(1+\sqrt{3})/{2}$ by Agarwal and Sharathkumar~\cite{agarwal2010streaming} 
+to $1.22$ by Chan and Pathak~\cite{chan2014streaming}.
+%If the dimension is fixed, a $(1 + \eps)$-approximation
+%can be maintained in $\O({k}/{\eps^{((d-1)/2)}})$ space 
+%using the notion of core-sets~\cite{zarrabi2008core}., 
+%Ahn~\etal~\cite{ahn2014computing} gave a $(2+\eps)$-approximation algorithm using $\O(\frac{d}{\eps})$ space and update time, which was improved for Euclidean spaces by 
+For $k=2$, Kim~\etal~\cite{kim2014improved} 
+have recently obtained a $(1.8+\eps)$-approximation  
+using $\O(\frac{d}{\eps})$ space and update time.
+
+For $k$-center with $z$ outliers in the streaming model, 
+McCutchen~\etal~\cite{mccutchen2008streaming} 
+%(using the idea in Charikar~\etal~\cite{charikar2001algorithms} as subroutine) 
+gave a $(4+\eps)$-approximation 
+%(or $(3+\eps)$-approximation, if all center points can be enumerated) 
+algorithm using $\O(\frac{zk}{\eps})$ space.
+When dimension is fixed, a $(1 + \eps)$-approximation to 1-center with outliers
+can be maintained in $\O({z}/{\eps^{((d-1)/2)}})$ space 
+using the notion of robust $\eps$-kernels~\cite{agarwal2007space, zarrabi2011almost}.
+For 1-center with outliers in high dimensions, 
+Zarrabi-Zadeh and Mukhopadhyay~\cite{zarrabi2009streaming} 
+gave a $(\sqrt{2}\alpha)$-approximation, 
+where $\alpha$ is the approximation factor of the underlying algorithm for maintaining 1-center. 
+Combined with the $1.22$-approximation algorithm of Chan and Pathak~\cite{chan2014streaming},
+it yields an approximation factor of $(\sqrt{2} \times 1.22) < 1.73$ 
+using $O(d^3z)$ space and $\poly(d,z)$ update time.
+%In fixed dimensions, there is a streaming $\O(\frac{z}{\eps^{\O(d)}})$-space algorithm~\cite{agarwal2007space, zarrabi2011almost}.
 
 
-% Kiana: I think first we should mention what others have done and then start declaring our problem. That's why I changed the location of the previous paragraph.
+\begin{table}[t]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}} \ \  Problem \ \ \end{tabular}} & \multicolumn{2}{c|}{Approximation Factor} \\ \cline{2-3} 
+ & Without Outliers & With Outliers \\ \hline
+1-Center & 1.22~\cite{chan2014streaming} & 1.73~\cite{zarrabi2009streaming} \\ \hline
+2-Center & $1.8 + \eps$~\cite{kim2014improved} & \textbf{$1.8 + \eps$} [Here]  \\ \hline
+$k$-Center & $2 + \eps$~\cite{guha2009tight,mccutchen2008streaming} & $4 + \eps$~\cite{mccutchen2008streaming}  \\ \hline
+\end{tabular}
+\caption {Summary of the streaming algorithms 
+for $k$-center with and without outliers in high dimensions.}
+\label{table:summary}
+\end{table}
+
+\paragraph{Our result}
+In this paper, we study the 2-center problem with outliers in high dimensions.
+We present a streaming algorithm for the problem that achieves
+an approximation factor of $1.8 + \eps$, for any $\eps > 1$,
+%using $O(d^3z/\eps)$ space.
+using $\poly(d, z, {1 \over \eps})$ space and update time.
+This improves the current streaming algorithm available for the problem
+which has an approximation factor of $4+\eps$.
+%Our work not only improves the best previous algorithm available for the case of 2-center,
+%but is also counterintuitive in the sense that its 
+The approximation factor of our algorithm matches
+that of the best streaming algorithm for the 2-center problem without outliers.
+This is somewhat surprising, considering that 
+the best current approximation factors for streaming $k$-center with and without outliers 
+differ by a factor of $\sqrt{2}$ for $k=1$,
+and differ by a factor of 2  for general~$k$. %the 1-center problem.
+See \Cref{table:summary} for a comparison.
+
+To obtain our result, we have used a combination of several ideas
+including parallelization construction, far/close ball separation,
+and keeping a lower bound on the radius and distance of the optimal balls.
+Our algorithm also utilizes the ideas used in~\cite{kim2014improved} 
+for the 2-center problem with no outliers.
+Nevertheless, our algorithm is much detailed and uses many new ingredients.
+Indeed, handling outliers makes the $k$-center problem much harder,
+as we not only need to find clusters with minimum radius, 
+but we also need to decide which subset of points to cluster.
+This is in particular more challenging in the streaming model,
+where we only have a single pass over the input, and we must decide on the fly
+which point can be an outlier, and which one can be safely dropped as a non-outlier point.
+
+\REM{
+The rest of this paper is organized as follows.
+In Section~\ref{sec:1-center}, we give a simple $2$-approximation algorithm for 
+the 1-center problem with outliers that uses $\O(z^2 + zd)$ space.
+In the next section, we show a $(1.8 + \eps)$-approximation streaming algorithm for 2-center with $z$ outliers in high dimensions. 
+%In Section~\ref{subsec:smaller} we run $z + 1$ parallel instances of the algorithm in order to find the first non-outlier point.
+}
 
 
 % ---------------------------- Preliminaries -------------------------------
 
 \section{Preliminaries}
 \label{sec:pre}
-Let $B(c,r)$ denote a ball with center $c$ and radius $r$. We denote by $pq$ the straight line segment between these two points and by $\card{pq}$ the length of this segment. 
-Define $\delta$ of two balls $B(c,r)$ and $B'(c',r')$, the minimum distance between $B$ and $B'$ which is equal to $\max (0, \card{cc'}-r-r')$.
+Let $B(c,r)$ denote a ball of radius $r$ centered at $c$. 
+Given two points $p$ and $q$, we denote by $pq$ the straight line segment between $p$ and $q$,
+and denote by $\len{pq}$ the length of this segment. 
+Given two balls $B(c,r)$ and $B'(c',r')$, 
+we define 
+$\delta(B, B') = \max \set{0, \len{cc'}-r-r'}$
+to be the \emph{distance} between $B$ and $B'$.
+Two congruent balls $B_1$ and $B_2$ with radius $r$ are said to be \emph{$\alpha$-separated}, 
+if $\delta(B_1, B_2) \geq \alpha r$.
 
-Let $B_{2,1}^*(c_1^*, r_2^*)$ and $B_{2,2}^*(c_2^*, r_2^*)$ denote the optimal solution to $2$-center problem with $z$ outliers. By $\delta^*$, denote the distance between $B_{2,1}^*$ and $B_{2,2}^*$, that is, $\delta^* = \max (0, \card{c_1^*c_2^*} - 2r^*)$. 
 
-Two congruent balls $B_1$ and $B_2$ with radius $r$ are said to be \emph{$C$-separated}, whenever the distance $\delta$ of two balls is at least $Cr$.
+Given an $n$-point set $P$ in $d$-dimensions,
+a point $c \in \IR^d$ is called a \emph{centerpoint} of $P$,
+if any halfspace containing $c$ contains at least $\ceil{{n}/({d + 1})}$ points of $P$. 
+%In other words, any halfspace (or convex set) that avoids a centerpoint can contain at most $\floor{\frac{dn}{d + 1}}$ points of $P$. 
+It is well-known that any finite set of points in $d$-dimensional space 
+has a centerpoint~\cite{danzer1963helly}. 
+The following observation is a corollary of this fact.
+%~\cite{edelsbrunner1987algorithms}.
 
-%Let $\mathcal{P}$ be a configuration of $n$ point in $d$-dimensional Euclidean space. A point $c_p$, not necessarily in $\mathcal{P}$, is a \emph{centerpoint} of $\mathcal{P}$, if no open half-space that omits $c_p$ contains more than $\frac{dn}{d+1}$ points of $\mathcal{P}$.
+\begin{obs}
+\label{obs:omitting-centerpoint}
+	Given a set $P$ of $k(d+1)$ points in $d$-dimensional space, 
+	there is a point $c$, not necessarily in $P$, 
+	such that any convex object that does not cover $c$, 
+	leaves at least $k$ points of $P$ uncovered.
+\end{obs}
 
+Given a point set $P$ and a point $p \in P$,
+the \emph{$k$-furthest point from $p$}
+is the $k$-th point of $P$ when points are sorted
+in their decreasing distance from~$p$.
 
-Given an $n$-point set $\mathcal{P}$ in $d$-dimensional Euclidean space, a point $c \in \IR^d$ is called a \emph{centerpoint} of $\mathcal{P}$ if any halfspace containing $c$, contains at least $\ceil{\frac{n}{d + 1}}$ points of $\mathcal{P}$. In other words, any halfspace (or convex set) that avoids a centerpoint can contain at most $\floor{\frac{dn}{d + 1}}$ points of $\mathcal{P}$. 
+We assume the standard word-RAM model of computation. 
+Each coordinate value takes a unit of space.
+Thus, a point in $d$ dimensions takes $\O(d)$ space,
+and basic operations on the points take $\O(d)$ time.
 
 
 %-------------------------- 1-center ---------------------------------
 
-\section{A Simple $2$-Approximation Algorithm for $1$-Center with Outliers}
-\label{sec:2apr}
+\section{A 2-Approximation for 1-Center with Outliers}
+\label{sec:1-center}
+
+To warm up, we present a simple $2$-approximation streaming algorithm
+for the 1-center problem with outliers.
+It utilized a parallelization technique that 
+will be used extensively in the rest of the paper.
+The pseudocode is provided in \Cref{alg:1-center}.
+The algorithm receives as input a stream of points, $P$,
+the number of outliers, $z$, 
+and a special point $c \in P$ which is guaranteed to be 
+a non-outlier in the optimal solution.
+It returns a ball $B$ covering all but at most $z$ points of $P$.
+%We will show later how to remove this assumption.
+
+%\begin{algorithm}
+%\caption{\sc 1-Center$(P, z)$} 
+%\algsetup{indent=1.5em}
+%\label{alg:1-center}
+%\begin{algorithmic}[1]
+%
+%	%\STATE Let $p_i$ denote the elements of $P$, for $i \in \set{1, \dots, n}$.
+%	\STATE let $p_1, \ldots, p_n$ be the points of $P$
+%	\FOR{$i = 1, \dots, z+1$}
+%		%\STATE move $p_i$ to the front of $P$ %is a non-outlier point in optimal solution.
+%		\STATE $B_i \gets$ \Call{1-Center-Special}{$P, z,p_i$}
+%	\ENDFOR
+%	%\STATE $i^* \gets \argmin_{i=1}^{z+1} r_i$
+%	\RETURN smallest ball among $\set{B_1, \ldots, B_{z+1}}$
+%
+%\end{algorithmic}
+%\end{algorithm}
 
 \begin{algorithm}
-\label{alg:1center}
-\leavevmode
-\begin{algorithmic}
-\Function{$1$-centerWithOutliers}{$\mathcal{P}, z$}
-	\State Let $p_i$ denote the elements of $\mathcal{P}$, for $i \in \set{1, \dots, n}$.
-	\ForAll{$i \gets 1, \dots, z+1$}
-		\State Assume $p_i$ is a non-outlier point in optimal solution.
-		\State $B(c_i, r_i) \gets$ \Call{KnownPoint}{$\mathcal{P}, z, p_i$}
-	\EndFor
-	\State $i^* \gets \argmin_{i=1}^{z+1} r_i$
-	\State \Return $B(c_{i^*}, r_{i^*})$
-\EndFunction
-\Statex
-\Function{KnownPoint}{$\mathcal{P}, z, p$}
-	\State $B \gets B(p, 0)$
-	\State $Q \gets \emptyset$
-	\For{$p'$ in $\mathcal{P}$}
-		\If{$p' \notin B$}
-			\State Insert $p'$ into $Q$.
-			\If{$\card{Q} = z + 1$}
-				\State $q$ $\gets$ closest point to $p$ in $Q$
-				\State Remove $q$ from $Q$.
-				\State $B \gets B(p, \card{pq})$
-			\EndIf
-		\EndIf
-	\EndFor
-	\State \Return{B}
-\EndFunction
+\caption{\sc 1-Center$(P, z, c)$} 
+\algsetup{indent=1.5em}
+\label{alg:1-center}
+\begin{algorithmic}[1]
+	%\STATE {$\triangleright$ $c$ is a non-outlier point in the optimal solution}
+	\STATE $B \gets B(c, 0)$
+	\STATE $Q \gets \emptyset$
+	\FORALL {$p$ in $P$}
+		\IF {$p \notin B$}
+			\STATE insert $p$ into $Q$
+			\IF {$|Q| = z + 1$}
+				\STATE $q$ $\gets$ closest point to $c$ in $Q$
+				\STATE remove $q$ from $Q$
+				\STATE $B \gets B(c, \len{cq})$
+			\ENDIF
+		\ENDIF
+	\ENDFOR
+	\RETURN {B}
 \end{algorithmic}
 \end{algorithm}
-Function \textproc{KnownPoint} in Algorithm~\ref{alg:1center}, takes a point $p$ as an argument which is guaranteed to be a non-outlier point in the optimal solution. To overcome the lack of knowledge about such a point, function \textproc{$1$\nobreakdash-centerWithOutliers} tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and generates a ball for each, using function \textproc{KnownPoint}. It returns the ball with the minimum radius. Note that, due to space limitations inherent to streaming data model, the body of for-all loop in function \textproc{$1$-centerWithOutliers} runs in parallel.
 
-\begin{theorem}
-Algorithm~\ref{alg:1center} is a $2$-approximation algorithm for $1$-center problem with $z$ outliers, in any dimension.
+%The function \textproc{1-Center-Special} in \Cref{alg:1-center-special}, 
+%takes as input a point $c$ which is guaranteed to be a non-outlier point in the optimal solution. 
+%To overcome the lack of knowledge about such a point, 
+%function \textproc{1-Center} in \Cref{alg:1-center}
+%tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and 
+%generates a ball for each, using function \textproc{1-Center-Special}. 
+%It returns the ball with the minimum radius. 
+%Note that, in the streaming model, %due to space limitations inherent to streaming data model, 
+%the body of the for loop in function \textproc{1-Center} runs in parallel.
+%To run function \textproc{1-Center} in the data stream model,
+%we run the body of the for loop in $z+1$ parallel streaming instances.
+
+\begin{theorem} \label{thm:1-center}
+	Algorithm~\ref{alg:1-center} computes a $2$-approximation to
+	the 1-center problem with $z$ outliers,
+	provided that a non-outlier point in the optimal solution in given.
 \end{theorem}
 
+
 \begin{proof}
-Let $B^*(c^*, r^*)$ be the optimal solution. Clearly, there exists a point $p$ among the first $z+1$ points of $\mathcal{P}$, which is not an outlier in the optimal solution (Figure~\ref{fig:1center}). Since $p \in B^*$, then $\card{pp'} \le 2r^*$ for any point $p'\in B^*$. There is at least one point $q'$ among the $(z+1)$-furthest points from $p$ that is not an outlier in the optimal solution. Thus $\card{pq} \le \card{pq'} \le 2r^*$ and Algorithm~\ref{alg:1center} returns a valid solution of radius at most $2r^*$. So the proof is complete.
+Let $B^*(c^*, r^*)$ be the optimal solution,
+and $c$ be a non-outlier in the optimal solution.
+Since $c$ is covered by $B^*$,
+for all points $p \in B^*$, we have
+$\len{cp} \le \len{cc^*} + \len{c^*p} \le 2r^*$.
+Among the $z+1$ points furthest from $c$,
+there is at least one point $q$ which is not outlier in the optimal solution,
+and therefore, is contained in $B^*$
+(see \Cref{fig:1center}). 
+Thus, $\len{cq} \le 2r^*$,
+and therefore, the ball $B(c, \len{cq})$ returned by Algorithm~\ref{alg:1-center} 
+is a 2-approximation. 
 \end{proof}
 
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=12em]{figs/one-center}
+	\caption{Proof of \Cref{thm:1-center}}
+	\label{fig:1center}
+\end{figure}
+
+
+\noindent
+Algorithm~\ref{alg:1-center} 
+assumes that a point $c$ is known in advance
+which is guaranteed to be a non-outlier in the optimal solution. 
+To overcome the lack of knowledge about such a point, 
+we run $z+1$ instances of \Cref{alg:1-center} in parallel,
+each of which is given as $c$ one of the first $z + 1$ points in the stream.
+Clearly, there exists a point among the first $z+1$ points of $P$
+which is not an outlier in the optimal solution.
+Therefore, the smallest ball among the $z+1$ balls computed in parallel
+is always within factor~2 of the optimal solution. % by \Cref{thm:1-center-special}.
+Since the space complexity of Algorithm~\ref{alg:1-center} for one instance is $\O(zd)$, 
+and its update time is $\O (zd \log z)$, % and the query time is $\O (z)$.
+we get the following result.
+
+\begin{theorem} \label{thm:1-center-stream}
+	Given a stream of points in $d$ dimensions,
+	we can maintain a 2-approximation to the 1-center with $z$ outliers
+	in $\O(z^2d)$ space and $\O (z^2d\log z)$ update time.
+\end{theorem}
+
+%function \textproc{1-Center} in \Cref{alg:1-center}
+%tries each of the first $z+1$ points of the stream as a candidate for a non-outlier point and 
+%generates a ball for each, using function \textproc{1-Center-Special}. 
+%It returns the ball with the minimum radius. 
+%Note that, in the streaming model, %due to space limitations inherent to streaming data model, 
+%the body of the for loop in function \textproc{1-Center} runs in parallel.
+%To run function \textproc{1-Center} in the data stream model,
+%we run the body of the for loop in $z+1$ parallel streaming instances.
 %
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=17em]{figs/one-center}
-%	\caption{Output of Algorithm~\ref{alg:1center}}
-%	\label{fig:1center}
-%\end{figure}
-
-% Behnam: Aks be nazaram gooya nist ziad. va inke jaii behesh refrence dade nashode!
-% Kiana: hagh ba behname. akse bedune refrence nadarim asan. montaha man benazaram kheili ehtiaji nis behesh asan 
-% Sahand: hazf konim ya pishnehadi baray e behboodesh darid?
-% Kiana: Man be nazaram vaghean chon kheili az idehaye basic ham baraye gheire streaming hamine va osulan idash yekam badihitowre hazf beshe. felan commentesh kardam age nazaretun chize digei bud avazesh konin.
-
-The space complexity of Algorithm~\ref{alg:1center} is $\cO(z^2 + zd)$, the update time is $\cO (z \log z + zd)$ and the query time is $\cO (z)$.
-If a non-outlier point $p$ is known then the space, update time and query time complexities of Algorithm~\ref{alg:1center} can be reduced by a factor of $z$.
+%The space complexity of Algorithm~\ref{alg:1center} is $\O(z^2 + zd)$, the update time is $\O (z \log z + zd)$ and the query time is $\O (z)$.
+%If a non-outlier point $p$ is known then the space, update time and query time complexities of Algorithm~\ref{alg:1center} can be reduced by a factor of $z$.
 
 
 
@@ -217,106 +470,626 @@ If a non-outlier point $p$ is known then the space, update time and query time c
 
 
 
-\section{The $2$-Center Problem with $z$ Outliers}
+\section{The 2-Center Problem with Outliers}
+\label{sec:2-center}
+
+In this section, we provide a $(1.8 + \eps)$-approximation algorithm
+for the 2-center problem with outliers.
+In all algorithms presented in this section,
+we assume that the first point of the stream, $p_1$, is non-outlier. 
+This assumption can be easily removed by considering $z + 1$ parallel instances of the algorithm, 
+similar to what we did in \Cref{sec:1-center}.
+
+Let $B_1^*$ and $B_2^*$ be the optimal balls
+in an optimal solution to the 2-center problem with $z$ outliers on a point set $P$.
+We denote by $r^*$ the optimal radius,
+and by $\delta^*$ the distance between $B_1^*$ and $B_2^*$.
+To prove our main result, we distinguish between two cases.
+In \Cref{subsec:bigger}, we address the case where $\delta^* > \alpha r^*$, 
+for some constant $\alpha$ to be fixed later.
+(It will be turn out that $\alpha = 14$ is a proper choice.)
+We then present in \Cref{subsec:smaller} 
+our algorithm for the case of $\delta^* \leq \alpha r^*$.
+
+%We inspect the case where $\delta^* \ge \alpha r^*$ in Subsection~\ref{subsec:bigger}.
+%give a description of our algorithm for a given $r > 0$ for the case where $\delta^* < \alpha r^*$ and $1.2r^* \le r < (1.2 + 2\eps/3)r^*$, which returns a $(1.8 + \eps)$-approximate solution. We explain how to find such an $r$ and present a full description of our algorithm for the case where $\delta^* < \alpha r^*$ in Subsection~\ref{subsec:findr}. 
 
 
-In all the algorithms given in this section it is assumed that $p_1$ is a non-outlier point. It is not hard to see that, this limitation can be overcome by considering $\cO(z)$ parallel instances of the algorithm, similar to Algorithm~\ref{alg:1center}.
-% Behnam: Move this to upper section, this assumption can be used for previous algorithm
-%kiana: Here is better. Since we do not have p_1 in section 4.2
-
-\begin{theorem}
-For any fixed $d > 1$, our single-pass data stream algorithm whose working space and update time are polynomial in $d$ and sub-linear in $n$, returns two centers that guarantees a $(1.8 + \eps)$-approximation for the Euclidean $2$-center problem with outliers.
-\end{theorem}
 
 
+% -------------------------------- First Case -----------------------------------
 
-In Section \ref{subsec:smaller}, we give a description of our algorithm for a given $r' > 0$ for the case where $\delta^* < C r^*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, which returns a $(1.8 + \eps)$-approximate solution. We explain how to find such an $r'$ and present a full description of our algorithm for the case where $\delta^* < C r^*$ in Subsection~\ref{subsec:findr}. Then we inspect the case where $\delta^* \ge C r^*$ in Subsection~\ref{subsec:bigger}.
+\subsection{The Case $\delta^* > \alpha r^*$}
+\label{subsec:bigger}
+
+In this section, we present a $1.8$-approximation algorithm for the case 
+where optimal balls are separated by a distance greater than $\alpha r^*$.
+%The value of $\alpha$ will be fixed later in this section.  
 
 
-\subsection{The Case $\delta^* < C r*$}
-\label{subsec:smaller}
-Our idea in this section is derived from \cite{ahn2014computing, kim2014improved}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states. In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, there exist at most two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
-Our modification is on the transition part.
-Points that are covered by current solution can safely be ignored, as they do not cause any transitions in the state, and only those points that lie outside the solution are candidates for being an outlier.
-In each state the number of points that should be considered as outliers is unknown. So all the possible choices should be considered. It is sufficient to have four integers, $n_1,\dots, n_4$ representing the number of outliers in depth $1$ to $4$, such that $\sum_{i=1}^{4} n_i=z$. To sum up, the modified algorithm is defined as follows:
-{
-\algrenewcommand\algorithmicindent{0.8em}%
-\begin{algorithm}
-\label{alg:smallc}
-\leavevmode
-\begin{algorithmic}
-\Function{Known$r'$}{$\mathcal{P}, z, r'$}
-	\For{$(n_1, \dots, n_4) \gets \set{(n_1, \dots, n_4) \provided \sum n_i=z}$}
-		\State $CS \gets B(p_1,r')$
-		\State $p_{o_2} \gets $ \Call{NthOutlier}{$n_1 + 1$, $p_1$}
-		\If{$p_{o_2}$ arrives}
-			\State $CS\gets [ \text{the sub-case of $p_{o_2} \in B_{2, 1}^*$} ] \cup [ \text{the sub-case of $p_{o_2} \in B_{2,2}^*$} ]$
-			\For{each case $S$}
-				\State $p_{o_3} \gets$ \Call{NthOutlier}{$n_2 + 1$, $p_{o_2}$}
-				\If{$p_{o_3}$ arrives} 
-					\State $CS\gets CS\setminus S \cup [ \text{the sub-case of $p_{o_3} \in B_{2, 1}^*$} ] \cup [ \text{the sub-case of $p_{o_3} \in B_{2,2}^*$}]$
-					\For {each sub-case $S'$} 
-						\State $p_{o_4} \gets$ \Call{NthOutlier}{$n_3 + 1$, $p_{o_3}$}
-						\If {$p_{o_4}$ arrives} 
-							\State Replace $S'$ with a new candidate solution.
-							\State $p_{o_5} \gets$ \Call{NthOutlier}{$n_4 + 1$, $p_{o_4}$}
-							\If{$p_{o_5}$ arrives}
-								\State Abandon the solution.
-							\EndIf
-						\EndIf
-					\EndFor
-				\EndIf
-			\EndFor
+\begin{obs}
+\label{obs:c+4}
+	Let $B_1$ and $B_2$ be two congruent balls of radius $r$,
+	with distance $\delta > \alpha r$.
+	%If $p$ and $q$ are two points in $B_1$ and $B_2$, respectively,
+	For any two points $p \in B_1$ and $q \in B_2$,
+	we have $1 \le \frac{\len{pq}}{\delta} <  \frac{\alpha + 4}{\alpha}$.
+\end{obs}
 
-		\EndIf
-		\State $\mathop{Sol}_{n_1,n_2,n_3,n_4} \gets$ the solution with the smallest larger radius, among all the sub-cases.
-	\EndFor
-	\State \Return the solution $\mathop{Sol}_{n_1,n_2,n_3,n_4}$ with the smallest radius, for all valid values of $(n_1,n_2,n_3,n_4)$.
-\EndFunction
+\begin{proof}
+The distance between $p$ and $q$ is at most $\delta + 4r$.
+%(see \Cref{fig:c+4}).
+Hence, $\frac{\len{pq}}{\delta} \leq 1 + {4r \over \delta} < 1 + \frac{4}{\alpha}$.
+\end{proof}
+
+\REM{
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=20em]{figs/c_plus_4}
+	\vspace{-1em}
+	\caption{Illustrating Observation~\ref{obs:c+4}}
+	\label{fig:c+4}
+\end{figure}
+}
+
+\begin{obs}
+\label{obs:intersection}
+	Let $B_1$ and $B_2$ be two disjoint balls of distance greater than $\delta$,
+	and let $B$ be an arbitrary ball of radius at most $\frac{\delta}{2}$. 
+	Then $B$ intersects at most one of $B_1$ and $B_2$.
+\end{obs}
+
+\noindent 
+%Before presenting our algorithm,
+We next prove some properties regarding 
+the optimal balls, $B_1^*$ and $B_2^*$.
+
+\begin{lemma}
+\label{lem:c-sep}
+	Let $B_1^*$ and $B_2^*$ be $\alpha$-separated, with $\alpha > 4$.
+	If $p$ is a point in $B_1^*$,
+	and $S$ is a $(z+1)$-subset of $P$ furthest from~$p$,
+	then $S \cap B_2^*$ is non-empty.
+\end{lemma}
+
+\begin{proof}
+Suppose by way of contradiction that $S \cap B_2^*$ is empty. 
+Since $\card{S} = z + 1$, there is at least one point in $S$
+which is not outlier, and hence, it is in $B_1^*$.
+Let $q$ be the point in $S \cap B_1^*$ furthest from~$p$. 
+Consider $B(p, \len{pq})$. It is clear that $B$ covers $P \setminus S$. 
+Since $p, q \in B_1^*$, then $\len{pq}$ is at most $2r^*$. 
+Thus, by Observation~\ref{obs:intersection}, $B_2^* \cap B = \emptyset$. 
+Therefore, $B_2^* \cap P = \emptyset$, and hence,
+ $B_2^*$ is empty, which contradicts the optimality of the solution.
+\end{proof}
+
+\begin{lemma}
+\label{lem:(z+1)-furthest}
+	Let $p$ be a point in $B_1^{*}$,
+	and $q$ be the $(z+1)$-furthest point from $p$. 
+	Then, $\delta^* > \frac{\alpha}{\alpha+4}\len{pq}$.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:c-sep}, there exists a point $q' \in B_2^*$ 
+such that $\len{pq'} \ge \len{pq}$. 
+Thus, by Observation~\ref{obs:c+4}, 
+%$\frac{\alpha}{\alpha+4} \len{pp_2} \le \delta^*$. 
+${\len{pq} \over \delta^*} \le {\len{pq'} \over \delta^*} < \frac{\alpha+4}{\alpha}$.
+The claim follows immediately.
+\end{proof}
+
+\begin{lemma}
+\label{lem:}
+	If $p \in B_1^*$ and $q \in B_2^*$,
+	then at most $z$ points of $P$ lie outside $B(p, 2r^*) \cup B(q, 2r^*)$.
+\end{lemma}
+
+\begin{proof}
+	TBA.
+\end{proof}
+
+\begin{lemma}
+\label{lem:}
+	Let $S$ be a subset of $P$ of size at least $\dz$,
+	enclosed by a ball of radius $\delta^* / 2$.
+	Then the centerpoint of $S$ lies either inside $B_1^{*}$ or inside $B_2^{*}$.
+\end{lemma}
+
+\begin{proof}
+	TBA.
+\end{proof}
+
+\paragraph{The Algorithm}
+We now describe our algorithm for handling the case  $\delta^* > \alpha r^*$.
+At any time, our algorithm maintains a partition of $P$ into three disjoint subsets
+$B_1$, $B_2$, and Buffer.
+The first point $p_1$ is assumed, w.l.o.g, to be in $B_1^*$. 
+The algorithm tries to partition points in such a way that 
+at the end,
+$B_1$ contains the whole $B_1^*$, and $B_2$ contains the whole $B_2^*$,
+with possibly some outliers being contained in $B_1$ and $B_2$.
+%Buffer has always size at most $z$.
+The algorithm sets $c_1 = p_1$ as the fixed center of $B_1$,
+and picks $c_2$ among the points processed so far as a candidate center for $B_2$.
+Moreover, the algorithm maintains two values $\delta$ and $r$,
+where at any time, $\delta$ is a lower bound of $\delta^*$, 
+and $r$ is an upper bound of $2r^*$.
+
+Our algorithm is presented in \Cref{alg:case-1}.
+For each input point $p \in P$, the algorithm first tries 
+to add $p$ to either $B_1$ or $B_2$,
+using functions \textproc{AddToB$_1$} and \textproc{AddToB$_2$}, respectively.
+%presented in Algorithms~\ref{alg:addB1} and~\ref{alg:addB2}.
+If none of them fits, the point is added to Buffer.
+The function \textproc{AddToB$_1$} adds a point $p$ to $B_1$
+only if it is within distance $\delta$ of the center $c_1$.
+Similarly, \textproc{AddToB$_2$} adds a point $p$ to $B_2$
+only if it is within $\rc$-radius of $c_2$. 
+The two functions also update $\delta$ and $\rc$ whenever necessary,
+to maintain the invariants to be defined shortly in Lemma~\ref{lem:invariants}.
+
+
+\begin{algorithm}[t]
+\caption{\sc 2-CenterCase1$(P)$} 
+\algsetup{indent=1.5em}
+\label{alg:case-1}
+\begin{algorithmic}[1]
+\STATE $c_1 \gets p_1$, $\rc  \gets 0$, $\delta \gets 0$
+\FORALL{$p \in P$}
+	\IF {\NOT (\Call{AddToB$_1$}{$p$} \OR \Call{AddToB$_2$}{$p$})}
+		\STATE add $p$ to Buffer
+		\WHILE{$\card{\mbox{Buffer}} > z$} \label{step:buffer-overflow}
+			\IF{$\card{B_2} \ge \dz$}
+				\STATE $B_1 \gets B_1 \cup B_2$, $B_2 \gets \emptyset$
+			\ELSIF{$c_2$ is set}
+				\STATE $B_1 \gets B_1 \cup \set{c_2}$ %, $B_u \gets B_u \cup \set{c_2}$
+				%\STATE remove $c_2$ from $B_2$
+			\ENDIF
+			\STATE $T \gets \mbox{Buffer} \cup B_2 \setminus \set{c_2}$
+			\STATE $B_2 \gets \emptyset$ 
+%			\IF{first iteration of while}
+%				\FOR{$p \in T$}
+%					\IF{\Call{AddToB$_1$}{$p$}}
+%						\STATE remove $p$ from $T$
+%					\ENDIF
+%				\ENDFOR
+%			\ENDIF
+			\STATE $c_2 \gets$ an arbitrary point of $T$
+			\STATE $\rc  \gets \frac{2}{\alpha}\len{c_1 c_2}$
+			\FOR{$p \in T$}
+				\STATE \Call{AddToB$_2$}{$p$}
+			\ENDFOR				
+			\STATE $\mbox{Buffer} \gets T \setminus B_2$
+		\ENDWHILE
+	\ENDIF
+\ENDFOR
 \end{algorithmic}
 \end{algorithm}
-}
-Here, \textproc{NthOutlier}$(n,p)$ returns the $n$\nth point arriving after $p$ in $\mathcal{P}$ that does not lie in current candidate solution.
+
+
+\begin{algorithm}[ht]
+\caption{\sc AddToB$_1(p)$} 
+\algsetup{indent=1.5em}
+\label{alg:addB1}
+\begin{algorithmic}[1]
+
+	%\STATE $q \gets c_1$
+	\IF {at least $z + 1$ points have been arrived}
+		\STATE $q \gets$  $(z+1)$-furthest point from $c_1$
+	\ELSE
+		\STATE $q \gets c_1$
+	\ENDIF
+	\STATE $\delta \gets \frac{\alpha}{\alpha+4} \len{c_1q}$
+	\IF {$p \in B(c_1, \delta)$}
+		\STATE $B_1 = B_1 \cup \set{p}$ %, B_u = B_u \cup \set{p}$
+		\RETURN{true}
+	\ENDIF
+	\RETURN{false}
+
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[ht]
+\caption{\sc AddToB$_2(p)$} 
+\algsetup{indent=1.5em}
+\label{alg:addB2}
+\begin{algorithmic}[1]
+%\FUNCTION{AddToB$_2$}{p}
+	\IF{$c_2$ is set \AND $p \in B(c_2, \rc )$}
+		\STATE $B_2 \gets B_2 \cup \set{p}$ %, B_u \gets B_u \cup \set{p}$
+		\IF{$|B_2| = \dz$}
+			%\STATE $\cp  \gets$  centerpoint of $B_2$
+			\STATE $\rc  \gets  (2 + \frac{2}{\alpha}) \times \rc$
+			\FOR{$p$ in Buffer}
+				\IF{$p \in B(c_2, \rc )$}
+					\STATE $B_2 \gets B_2 \cup \set{p}$ %, B_u \gets B_u \cup \set{p}$
+					\STATE remove $p$ from Buffer
+				\ENDIF
+			\ENDFOR
+		\ENDIF
+		\RETURN{true}
+	\ENDIF
+	\RETURN{false}
+%\ENDFUNCTION
+\end{algorithmic}
+\end{algorithm}
+
+Whenever the buffer overflows (in line~\ref{step:buffer-overflow} of \Cref{alg:case-1}),
+%the assumption about $\cp \in B_2^*$ is contradicted.
+%At some point during the execution of Algorithm~\ref{alg:case-1}, the assumption about $\cp \in B_2^*$ might be contradicted when the buffer overflows. We can then conclude that
+% $\cp \notin B_2^*$.
+the algorithm takes one of the following actions
+depending on the size of $B_2$. 
+If $|B_2| \ge \dz$, then the points of $B_2$ are moved to $B_1$, and $B_2$ is reset.
+Otherwise, the old $c_2$ (if already set) is moved to $B_1$,
+and another point from $T = B_2 \cup \Buffer \setminus \set{c_2}$ is picked as $c_2$.
+The while loop iterates $O(dz)$ times,
+because after the first iteration, we are sure 
+that $T$ has at most $\dz + z$ points, from which 
+one point (i.e., $c_2$) is removed at each subsequent iteration.
+
+
+\paragraph{Analysis}
+For the sake of analysis, we maintain a special point,
+denoted by $\cp$, %not necessarily in $P$,
+which we call a \emph{central point}.
+The point is defined as follows:
+if $\card{B_2} < \dz$, then $\cp = c_2$, otherwise,
+$\cp$ is the centerpoint of the first $\dz$ points currently in $B_2$.
+
+\begin{lemma}
+\label{lem:invariants}
+	The following invariants are maintained during the execution of the algorithm:
+
+\begin{enumerate}
+\item [(a)] $\delta < \delta^*$ %$\delta$ is a lower bound of $\delta^*$
+\item [(b)] $B_1 \cap B_2^* = \emptyset$
+\item [(c)]  if $\cp \in B_2^*$, then 
+	\begin{enumerate}
+		\item [1.] $2r^* \le r \le \delta /2$
+		\item [2.] $B_2 \cap B_1^* = \emptyset$
+		\item [3.] all points in $\Buffer$ are outliers
+	\end{enumerate}
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+TBA \ 
+(All non-used parts from the previous version are copied here.
+They might be useful for composing the proof of this lemma.)
+
+The function \textproc{AddToB$_1$} presented in \Cref{alg:addB1} 
+is used to add a point $p$ to $B_1$. 
+%The point $c_1$ is the first point of the stream,
+%which is assumed to be non-outlier, and is in $B_1^*$.
+The point will be added to $B_1$ only if it is within distance $\delta$ of the center $c_1$, 
+where $\delta = \frac{\alpha}{\alpha+4}\len{qc_1}$ 
+and $q$ is the $(z+1)$-furthest point from $c_1$.
+%among the points of $P$ seen so far.
+By Lemma~\ref{lem:(z+1)-furthest}, $\delta$ is a strict lower bound of $\delta^*$. 
+Therefore, any point within $\delta$-radius of $c_1$ is guaranteed to be outside $B_2^*$. 
+Thus, property P1 is not violated by this function.
+%$B_1 \cap B_2^* = \emptyset$.
+Note that if less than $z+1$ points have been seen so far,
+then $\delta = 0$, %$q = c_1$, 
+and hence, property P1 is still maintained.
+
+
+The function \textproc{AddToB$_2$} presented in \Cref{alg:addB2}
+is used to add a point $p$ to $B_2$.
+Initially, $B_2$ is empty and $c_2$ is not initialized. 
+When an appropriate candidate is found, 
+$c_2$ is set to that candidate by the main algorithm (Algorithm~\ref{alg:case-1}),
+and $\rc$ is set to $\frac{2}{\alpha}\len{c_1c_2}$.
+After that, points are added to $B_2$ by function \textproc{AddToB$_2$}
+only if they are within $\rc$-radius of $c_2$. 
+Consider $c_2$ as the central point $c_p$. % is considered as the central point $\cp$. 
+Clearly, property P2 holds initially when $B_2$ consists of a single point $c_2$. 
+All subsequent points added to $B_2$ are within $\rc$-radius of $c_2$.
+Therefore, for $\alpha > 7$ (Why?), Observation~\ref{obs:intersection}
+implies that $B_2 \cap B_1^* = \emptyset$,
+and hence, property P2 is maintained. %invariant under this operation.
+
+
+When the size of $B_2$ reaches $\dz$, 
+we update the central point $\cp$ to the centerpoint of $B_2$.
+%We claim that $B(c_2, (2 + \frac{2}{\alpha})\rc )$ completely covers
+%the ball $B(\cp, \frac{2\len{c_1\cp}}{\alpha})$.
+If $\cp \in B_2^*$, then by Observation~\ref{obs:c+4},
+we have $\frac{\len{c_1\cp}}{\delta^*} \geq 1$,
+and hence, $r^* < \frac{\len{c_1\cp}}{\alpha}$. 
+Therefore, $B_2^* \subset B(\cp, \frac{2\len{c_1\cp}}{\alpha})$.
+Moreover,
+\[
+	2 \cdot \frac{\len{c_1\cp}}{\alpha} \leq \frac{2}{\alpha}(\len{c_1c_2} + \rc ) 
+	\leq (1 + \frac{2}{\alpha})\rc.
+\]
+Therefore, $B_2^* \subseteq B(c_p, (1 + \frac{2}{\alpha})\rc )
+\subseteq B(c_2, (2 + \frac{2}{\alpha})\rc )$. 
+It is easy to see that $(2 + \frac{2}{\alpha})\rc  \le \frac{\delta}{2}$ provided that $\alpha \ge 14$.
+Thus, if we increase $\rc$ by a factor of $(2 + \frac{2}{\alpha})$, 
+%by setting $B_2 = B(c_2, (2 + \frac{2}{\alpha})\rc )$, 
+$B_2 \cap B_1^* = \emptyset$
+by Observation~\ref{obs:intersection}, and hence,
+property P2 is still maintained. 
+
+Whenever the buffer overflows 
+%the assumption about $\cp \in B_2^*$ is contradicted.
+%At some point during the execution of Algorithm~\ref{alg:case-1}, the assumption about $\cp \in B_2^*$ might be contradicted when the buffer overflows. We can then conclude that
+% $\cp \notin B_2^*$.
+the algorithm takes one of the following actions
+depending on the size of $B_2$. 
+
+\begin{itemize}
+\item 
+If $|B_2| < \dz$, then $c_2$ can be added to $B_1$
+without violating P1. (Why?) 
+The algorithm then tries the points in $B_2 \cup \mbox{Buffer}$, 
+until it finds a suitable candidate for $c_2$ that does not leave
+more than $z$ points uncovered. 
+Note that at most $(z+1)(d+1) + z$ points have to be tried. 
+
+\item 
+If $\card{B_2} \ge \dz$, let $q$ be the $(z+1)$-furthest point from $p_1$,
+and let $p'$ be the nearest point of the ball $B_2(c_2, \rc )$ to $p_1$. 
+Then $\len{qp_1} > \len{p'p_1}$, since $B_2$ contains more than $z+1$ points. 
+Therefore, by Lemma~\ref{lem:(z+1)-furthest} we have
+\[
+\delta \ge \frac{\alpha }{\alpha+4}\len{qp_1} \ge \frac{\alpha}{\alpha+4} (\len{c_1c_2} - \rc ) = \frac{\alpha^2 - 2\alpha}{2\alpha + 8} \rc.
+\]
+As a result, if $\alpha \geq 14$ then $(2 + \frac{2}{\alpha}) \rc  < \frac{\delta}{2}$. 
+By Observation~\ref{obs:intersection}, the ball $B_2(c_2, (2 + \frac{2}{\alpha}) \rc )$ 
+has nonempty intersection with exactly one of $B_1^*$ and $B_2^*$ 
+(i.e., not all of its points can be outliers). 
+Since the buffer overflowed, the assumption about the central point, 
+$\cp$, being in $B_2^*$ has become invalid. 
+By Observation~\ref{obs:omitting-centerpoint}, if $\cp$ is not covered, 
+then the ball $B_1^*$ leaves at least $z+1$ points of $B_2$ uncovered, 
+and there will be more than $z$ outliers. 
+Thus, $\cp$ has to be covered. 
+As a result, $\cp \in B_1^*$ and all the points of $B_2$ can be added to $B_1$. 
+This is done by replacing $B_1$ with $B_1 \cup B_2$, and resetting $B_2$ to empty set.
+\end{itemize}
+\end{proof}
+
+
+\begin{lemma}
+\label{lem:}
+	After termination of \Cref{alg:case-1}, 
+	if $|B_2| \ge \dz$ and $\cp \not\in B_2^*$,
+	then $B_2 \cap B_2^* = \emptyset$.
+\end{lemma}
+
+\begin{proof}
+	TBA.
+\end{proof}
+
+
+\paragraph{Streaming Model}
+To implement our algorithm in the streaming model,
+we maintain the sets $B_1$ and $B_2$ 
+in a data structure that supports adding points,
+and gives a $\beta$-approximation to 1-center with $k$ outliers, for $k=0,\dots,z$.
+Moreover, we maintain a set $B_u = B_1 \cup B_2$ in a similar data structure.
+Note that these data structures do not need to maintain all the points. 
+They only need to have a buffer of size $\dz$ that keeps the most recently added points.
+
+Let $B_1'$, $B_2'$, and $B_u'$ be the $\beta$-approximate balls obtained from the data structures
+[This part needs clarification].
+%1-centers obtained from $B_1$, $B_2$ and $B_u$ by the $\beta$-approximation algorithm, respectively. 
+To answer a query, we can use these balls as follows. 
+By our initial assumption about $p_1$, $B_1$ contains $B_1^*$,
+and $B_1'$ is a $\beta$-approximation for $B_1^*$. (Why?)
+But for $B_2$, it might be the case that our assumption about $c_2$ 
+was incorrect, so $B_2'$ may not be a good approximation for $B_2^*$. 
+There are two cases to be considered based oon $\card{B_2}$. 
+If $\card{B_2} < (z+1)(d+1)$, then we can try each point in 
+$B_2 \cup \mbox{Buffer}$ as a candidate for the central point. 
+If $\card{B_2} \ge \dz$, then there is no need for points in $B_2$ to be considered, 
+since for those points as central point, $B_1$ will be replaced by $B_u$ and $B_2$ will be empty. (Why?)
+Thus it suffices to consider points of Buffer as candidates 
+and compare them to the solution of $(B_u, \emptyset)$.
+
+
+\begin{algorithm}
+\caption{\sc Query} 
+\algsetup{indent=1.5em}
+\label{alg:query}
+\begin{algorithmic}[1]
+%\Function{Query}{}
+	\STATE solutions $\gets [\Call{ComputeMin}{B_u, \emptyset, \text{Buffer}}]$
+	
+	\STATE candidates $\gets$ Buffer
+	\IF {$\card{B_2} < \dz$}
+		\STATE candidates $\gets \text{Buffer} \cup B_2$ % \setminus \set{c_2}$
+	\ENDIF
+
+	\FOR{$c_2 \in$ candidates}
+		\STATE $\rc  \gets \frac{2}{\alpha} \len{c_1 c_2}$
+		\STATE $B_2 \gets \emptyset$, Buffer $\gets \emptyset$ 
+		\FOR{$p \in$ candidates}
+			\IF{\NOT \Call{AddToB$_2$}{$p$}}
+				\STATE add $p$ to Buffer
+			\ENDIF
+		\ENDFOR
+		\STATE add \Call{ComputeMin}{$B_1$, $B_2$, Buffer} to solutions
+	\ENDFOR
+	\RETURN $\min\set{\text{solutions}}$
+%\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{\sc ComputeMin($B_1, B_2, \text{\rm Buffer}$)} 
+\algsetup{indent=1.5em}
+\label{alg:query}
+\begin{algorithmic}[1]
+%\Function{ComputeMin}{$B_1$, $B_2$, Buffer}
+	\STATE solutions $\gets [\,]$
+	\FOR{$k \gets 0, \dots,(z - \card{\mbox{Buffer}})$}
+		\STATE $r_1 \gets \Call{1-Center}{B_1, k}$
+		\STATE $r_2 \gets \Call{1-Center}{B_2, z - \card{\mbox{Buffer}} - k}$
+		\STATE add $\max \set{r_1, r_2}$ to solutions
+	\ENDFOR
+	\RETURN $\min\set{\text{solutions}}$
+%\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\REM{
+Suppose that our data structure for maintaining $B_1$, $B_2$ and $B_u$ uses $S(n,z,d)$ space, $T(n,z,d)$ update and $Q(n,z,d)$ query time. Note that by $Q_{o}(zd,z,d)$ we mean the query time for the offline 1-center problem with $z$ outlier in $d$ dimensions. The best known algorithm for 1-center without outliers is $1.22$-approximation by~\cite{chan2014streaming, agarwal2010streaming}. The buffering framework introduced in~\cite{zarrabi2009streaming} with $\O(dz^3 + (\frac{d}{\eps^3})\log(\frac{1}{\eps}))$ space complexity, can be used with this algorithm as subroutine to achieve a $(1.22\sqrt{2})$-approximation ($1.22\sqrt{2} < 1.8$) for 1-center problem with outliers.
 
 \begin{theorem}
-Given $\delta^* < C r^*$ and $1.2r^* \le r' < (1.2 + 2\eps/3)r^*$, Algorithm~\ref{alg:smallc} uses $\cO (dz^3)$ space and returns a $(1.8+\eps)$-approximate solution. Algorithm~\ref{alg:smallc} spends $\cO (dz^3)$ update time for each point in $\mathcal{P}$ and answers a query in $\cO (dz^3)$.
+\label{thm:2nd-cmplx}
+Space complexity of Algorithm~\ref{alg:case-1} is $\O(dz+S(n,z,d))$. It takes $\O^*(dzT(n,z,d))$ time for update. Query time in Algorithm~\ref{alg:query} is $\O(zQ(n,z,d) + dz(dz+zQ_o(zd,z,d)))$ and it returns two centers that guarantee a $(1.8 + \eps)$-approximation for 2-center problem with outliers.
 \end{theorem}
 
 \begin{proof}
-Since our algorithm considers all possible input cases of streaming points, there is at least one feasible solution. Since every feasible solution has its larger radius at most $3r'/2$, the final solution has larger radius at most $3r'/2 \le (1.8 + \eps)r^*$.
-For space complexity, our algorithm maintains at most two balls in each case, and therefore it uses $\cO(dz^3)$ space. Whenever the next point is inserted, the algorithm updates the solution for each sub-case in $\cO (d)$ time. Therefore, the algorithm spends $\cO (dz^3)$ update time for each point of $\mathcal{P}$. Answering a query consists of choosing the minimum radius among all the candidate solutions, which amounts to $\cO (dz^3)$ time.
+The space complexity for this algorithm is derived from the space used by $B_1$, $B_2$, $B_u$ and the Buffer which is obviously $\O(dz+S(n,z,d))$. The while loop runs at most once for each point, so amortized time is $\O(zdT(n,z,d))$. The candidates in the Algorithm~\ref{alg:query} are at most $zd$ points  so the query time will easily follows.
+\end{proof}
+}
+
+\begin{theorem}
+\label{thm:far-cmplx}
+	If $\delta^* > \alpha r^*$, a $1.8$-approximation to the 2-center problem with $z$ outliers 
+	can be maintained in $O(d^3z^2)$ space and $\poly(d,z)$ update time.
+\end{theorem}
+
+\begin{proof}
+The streaming algorithm of Zarrabi-Zadeh and Mukhopadhyay~\cite{zarrabi2009streaming} 
+equipped with the streaming $1.22$-approximation for 
+1-center~\cite{agarwal2010streaming, chan2014streaming}
+yields a $(1.22 \times \sqrt{2})$-approximation algorithm
+for 1-center with $z$ outliers.
+Since $1.22 \times \sqrt{2} < 1.8$, the approximation factor of our algorithm follows.
+The algorithm of~\cite{zarrabi2009streaming}
+has $O(d^3z)$ space and $\poly(d,z)$ update time,
+which implies the same bounds for \Cref{alg:case-1}.
+Since we need to run $z + 1$ instances of \Cref{alg:case-1} in parallel, 
+the space and update time is increased by a factor of $O(z)$.
 \end{proof}
 
 
-\subsubsection{Finding $r'$}
+% -------------------------------- Second Case -----------------------------------
+
+\subsection{The Case $\delta^* \leq \alpha r^*$}
+\label{subsec:smaller}
+Our idea in this section is derived from~\cite{ahn2014computing, kim2014improved}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states. In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, there exist at most two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
+Our modification is on the transition part.
+Points that are covered by current solution can safely be ignored, as they do not cause any transitions in the state, and only those points that lie outside the solution are candidates for being an outlier.
+In each state the number of points that should be considered as outliers is unknown. So all the possible choices should be considered. It is sufficient to have four integers, $n_1,\dots, n_4$ representing the number of outliers in depth $1$ to $4$, such that $\sum_{i=1}^{4} n_i=z$. 
+The modified algorithm is presented in \Cref{alg:smallc}.
+In this algorithm, \textproc{NthOutlier}$(n,p)$ returns the $n$-th point 
+arriving after $p$ in $P$ that does not lie in the current candidate solution.
+
+\begin{algorithm}
+\caption{\sc 2-CenterCase2$(P, z, r)$} 
+\algsetup{indent=1em}
+\label{alg:smallc}
+%\leavevmode
+\begin{algorithmic}[1]
+%\Function{Known$r$}{$P, z, r$}
+ 	\STATE list $\gets [\,]$
+	\FORALL{$(n_1, \dots, n_4)$ such that $\sum n_i=z$}
+		\STATE $CS \gets B(p_1,r)$
+		\STATE $p^o_{2} \gets $ \Call{NthOutlier}{$n_1 + 1$, $p_1$}
+		\IF{$p^o_{2}$ arrives}
+			\STATE $CS\gets [ \text{subcase $p^o_{2} \in B_1^*$} ] \cup [ \text{subcase $p^o_{2} \in B_2^*$} ]$
+			\FORALL{case $S$}
+				\STATE $p^o_{3} \gets$ \Call{NthOutlier}{$n_2 + 1$, $p^o_{2}$}
+				\IF{$p^o_{3}$ arrives} 
+					\STATE $CS\gets CS\setminus S \cup [ \text{subcase $p^o_{3} \in B_1^*$} ] \cup [ \text{the subcase $p^o_{3} \in B_2^*$}]$
+					\FORALL {subcase $S'$} 
+						\STATE $p^o_{4} \gets$ \Call{NthOutlier}{$n_3 + 1$, $p^o_{3}$}
+						\IF {$p^o_{4}$ arrives} 
+							\STATE replace $S'$ by a new candidate solution
+							\STATE $p^o_{5} \gets$ \Call{NthOutlier}{$n_4 + 1$, $p^o_{4}$}
+							\IF{$p^o_{5}$ arrives}
+								\STATE abandon the solution
+							\ENDIF
+						\ENDIF
+					\ENDFOR
+				\ENDIF
+			\ENDFOR
+
+		\ENDIF
+		%\STATE $\mathop{Sol}_{n_1,n_2,n_3,n_4} \gets$ the solution with the smallest larger radius, among all the subcases.
+		\STATE add to list the solution with the smallest larger radius, among all subcases
+	\ENDFOR
+	\RETURN the solution in list with the smallest radius
+\end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{theorem}
+	For $1.2r^* \le r < (1.2 + 2\eps/3)r^*$ and $\delta^* < \alpha r^*$,
+	Algorithm~\ref{alg:smallc} returns a $(1.8+\eps)$-approximate solution,
+	using $\O (dz^3)$ space and $\O (dz^3)$ update and query time.
+\end{theorem}
+
+\begin{proof}
+Since our algorithm considers all possible input cases of streaming points, there is at least one feasible solution. Since every feasible solution has its larger radius at most $3r/2$, the final solution has larger radius at most $3r/2 \le (1.8 + \eps)r^*$.
+For space complexity, our algorithm maintains at most two balls in each case, and therefore it uses $\O(dz^3)$ space. Whenever the next point is inserted, the algorithm updates the solution for each subcase in $\O (d)$ time. Therefore, the algorithm spends $\O (dz^3)$ update time for each point of $P$. Answering a query consists of choosing the minimum radius among all the candidate solutions, which amounts to $\O (dz^3)$ time.
+\end{proof}
+
+
+\subsubsection{Finding $r$}
 \label{subsec:findr}
 
-\begin{lemma}
-\label{lem:1lt2}
-A $1$-center optimal solution with $z$ outliers for a set of points is also an upper bound for the $2$-center optimal solution with $z$ outliers.
-\end{lemma}
-\begin{proof}
-Let $B^*(c^*, r_1^*)$ be the optimal solution for the $1$-center problem. Let $B'$ be a ball with radius $r_1^*$ and center at $\infty$. Clearly, $(B^*, B')$ is a solution for $2$-center problem. Thus, the proof is complete.
-\end{proof}
 
 \begin{lemma}
-\label{lem:2lt1}
-Let $r_1^*, r_2^*$ be the radius of $1$-center and $2$-center optimal solutions with $z$ outliers, respectively. Then $r_1^* < \left(\frac{C}{2} + 2\right) r_2^*$.
+\label{lem:1-2}
+	An optimal solution for the 1-center problem with $z$ outliers on a point set
+	gives a $(2 + {\alpha \over 2})$-approximation for
+	the 2-center problem with $z$ outliers on that set,
+	provided that $\delta^* \le \alpha r^*$.
 \end{lemma}
+
+
+%\begin{lemma}
+%\label{lem:1-2}
+%	Let $r_1^*$ and $r^*$ be optimal solutions for
+%	the 1-center and 2-center problems with $z$ outliers, respectively.
+%	If the optimal 2-center balls have distance at most $\alpha r^*$, 
+%	then $r^* \le r_1^* \le \left(2 + \frac{\alpha}{2}\right) r^*$.
+%\end{lemma}
+
 \begin{proof}
-Suppose that $(B_{2, 1}^*(c_1^*, r_2^*), B_{2,2}^*(c_2^*, r_2^*))$ is an optimal solution for $2$-center problem. Consider $m$ as the midpoint of segment 
-$c_1^*c_2^*$ (Figure~\ref{fig:2lt1}).
-Clearly, $B\left(m, \frac{\delta}{2} + 2r_2^*\right)$ covers both $B_{2, 1}^*$ and $B_{2,2}^*$. So it is a solution for $1$-center problem and the proof is complete.
+Let $r_1^*$ and $r^*$ be the optimal radii for
+the 1-center and 2-center problems with $z$ outliers on $P$, respectively.
+It is clear that $r^* \le r_1^*$,
+because any feasible solution $B^*$ for 1-center with $z$ outliers
+yields a feasible solution $(B^*, B^*)$ for 2-center with $z$ outliers.
+%Let $B^*$ be an optimal solution for the 1-center problem with $z$ outliers. 
+%Then, $(B^*, B^*)$ is a feasible solution for the 2-center problem with $z$ outliers. 
+%Hence, $r_2^* \le r_1^*$.
+Now, suppose that $B_1^*(c_1^*, r^*)$ and $B_2^*(c_2^*, r^*)$
+are the balls in an optimal solution for the 2-center problem with $z$ outliers.
+Let $c$ be the midpoint of the segment connecting 
+$c_1^*$ to $c_2^*$ (see Figure~\ref{fig:2lt1}).
+Clearly, $B\left(c, \frac{\delta}{2} + 2r_2^*\right)$ covers both $B_1^*$ and $B_2^*$. 
+Therefore, it is a feasible solution for the 1-center problem with $z$ outliers.
+Hence, $ r_1^* \le \left(2 + \frac{\alpha}{2}\right) 2^*$.
 \end{proof}
 
-\begin{figure}[h]
+\begin{figure}[th]
 	\centering
 	\includegraphics[width=19em]{figs/2lt1}
-	\caption{Proof of Lemma~\ref{lem:2lt1}}
+	\caption{Proof of Lemma~\ref{lem:1-2}}
 	\label{fig:2lt1}
 \end{figure}
 
-Algorithm~\ref{alg:1center} finds a $2$-approximation for $r_1^*$. By Lemma \ref{lem:1lt2} and \ref{lem:2lt1}, it gives a $2\left(\frac{C}{2} + 2\right)$-approximation for $r_2^*$.
+\noindent 
+The following is a direct corollary of Lemma~\ref{lem:1-2} and Theorem~\ref{thm:1-center}.
+
+\begin{cor}
+	If $\delta^* \le \alpha r^*$, 
+	\Cref{alg:1-center} computes a $(4 + \alpha)$-approximation to $r^*$. 
+\end{cor}
+
 
 \begin{obs}
 \label{obs:2apr}
@@ -324,256 +1097,78 @@ Let $r_1$ and $k_0$ be two positive real numbers. Define $k=k_0 2^i$ to be the s
 \end{obs}
 
 
-Our algorithm maintains $m=\ceil{\frac{1.2(3C+12)}{\eps}}$ candidate lengths.
-For each candidate length $t$, assume that $r' = t$ and use it to run Algorithm~\ref{alg:smallc}. Algorithm~\ref{alg:1center} is used to estimate $r'$. Let $k_i$ be the $i$\nth non-zero radius calculated by the algorithm. Obviously, the sequence of answers given by the algorithm is increasing.
+Our algorithm maintains $m=\ceil{{1.2 \times (3 \alpha+12)}/{\eps}}$ candidate lengths.
+For each candidate length $t$, assume that $r = t$ and use it to run Algorithm~\ref{alg:smallc}. Algorithm~\ref{alg:1-center} is used to estimate $r$. Let $k_i$ be the $i$-th non-zero radius calculated by the algorithm. Obviously, the sequence of answers given by the algorithm is increasing.
 
-Let $l_1=k_1$ and $l_i=2^j l_1$, where $l_i$ is the smallest number satisfying $l_i \ge k_i$. By Observation~\ref{obs:2apr}, $l_i$ is a $(2C + 8)$-approximation for $r_2^*$. If the interval $(0, 1.2 l_i]$ divides into $m$ equal segments (Figure~\ref{fig:findr}), then length of each segment is at most $2/3 \eps r_2^*$ and the endpoints as candidates are $\mathcal{L}_i = \set{j \times t_i \provided j = 1, \dots, m}$ where $t_i = \frac{1.2 l_i}{m}$. 
+Let $l_1=k_1$ and $l_i=2^j l_1$, where $l_i$ is the smallest number satisfying $l_i \ge k_i$. By Observation~\ref{obs:2apr}, $l_i$ is a $(8 + 2\alpha)$-approximation to $r_2^*$.
+If the interval $(0, 1.2 l_i]$ divides into $m$ equal segments (Figure~\ref{fig:findr}), then length of each segment is at most $2/3 \eps r_2^*$ and the endpoints as candidates are $L_i = \set{j \times t_i \provided j = 1, \dots, m}$ where $t_i = \frac{1.2 l_i}{m}$. 
 The inequality $1.2 r_2^* \le j \times l_i \le (1.2 + \frac{2\eps}{3})r_2^*$ holds for at least one of these candidates.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=21em]{figs/findr}
-	\caption{Subdivision of $(0, 1.2 l_i]$ interval}
+	\caption{Subdivision of the interval $(0, 1.2 \ell_i]$}
 	\label{fig:findr}
 \end{figure}
 
 
-When the first non-zero radius is observed, $l_1$ is set. Algorithm~\ref{alg:smallc} should be executed for each candidate in $\mathcal{L}_1$ for all the previous points, which have been stored in a buffer. It is not hard to see that the space complexity for storing these points is $\cO(z)$. For each new point, if $l_i=l_{i-1}$ then $\mathcal{L}_i = \mathcal{L}_{i-1}$ and it suffices to add the new point to all parallel instances corresponding to candidates in $\mathcal{L}_i$. Otherwise, Algorithm~\ref{alg:smallc} should be executed for all of the candidates in $\mathcal{L}_i$, with all the points. But this is not achievable due to space limitations. To overcome this problem, note that if the candidate $x_j=j \times t_i \in \mathcal{L}_i$ is also in $\mathcal{L}_{i-1}$, there is no need to start Algorithm~\ref{alg:smallc} over and the current execution will be continued. If $x_j \notin \mathcal{L}_{i-1}$, then it is certain that $x_j \ge l_{i - 1}$ (Observe that $l_i=ul_{i-1}$, for some $u\in \mathbb{N}$). Since the points that do not lie in the candidate solution are saved in the buffer used in Algorithm~\ref{alg:1center} (which has size at most $z$), all the non-outlier points of this algorithm lie in the candidate balls in Algorithm~\ref{alg:smallc}. These outliers have been stored in a buffer, so for the new candidate length, it suffices to execute Algorithm~\ref{alg:smallc} with only the outlier points of $B_1$.
+When the first non-zero radius is observed, $l_1$ is set. Algorithm~\ref{alg:smallc} should be executed for each candidate in $L_1$ for all the previous points, which have been stored in a buffer. It is not hard to see that the space complexity for storing these points is $\O(z)$. For each new point, if $l_i=l_{i-1}$ then $L_i = L_{i-1}$ and it suffices to add the new point to all parallel instances corresponding to candidates in $L_i$. Otherwise, Algorithm~\ref{alg:smallc} should be executed for all of the candidates in $L_i$, with all the points. But this is not achievable due to space limitations. To overcome this problem, note that if the candidate $x_j=j \times t_i \in L_i$ is also in $L_{i-1}$, there is no need to start Algorithm~\ref{alg:smallc} over and the current execution will be continued. If $x_j \notin L_{i-1}$, then it is certain that $x_j \ge l_{i - 1}$ (Observe that $l_i=ul_{i-1}$, for some $u\in \mathbb{N}$). Since the points that do not lie in the candidate solution are saved in the buffer used in Algorithm~\ref{alg:1-center} (which has size at most $z$), all the non-outlier points of this algorithm lie in the candidate balls in Algorithm~\ref{alg:smallc}. These outliers have been stored in a buffer, so for the new candidate length, it suffices to execute Algorithm~\ref{alg:smallc} with only the outlier points of $B_1$.
+
+%\begin{theorem}
+%\label{thm:1st-cmplx}
+%Algorithm~\ref{alg:smallc} uses $\O(\frac{dz^3}{\eps})$ space, and takes $\O(\frac{dz^4}{\eps})$ and $\O(\frac{dz^3}{\eps})$ time for update and query, respectively.
+%\end{theorem}
 
 \begin{theorem}
-\label{thm:1st-cmplx}
-Algorithm~\ref{alg:smallc} uses $\cO(\frac{dz^3}{\eps})$ space, and takes $\cO(\frac{dz^4}{\eps})$ and $\cO(\frac{dz^3}{\eps})$ time for update and query, respectively.
+\label{thm:close-cmplx}
+	If $\delta^* \leq \alpha r^*$, a $(1.8 + \eps)$-approximation to the 2-center problem with $z$ outliers 
+	can be maintained in $\O(\frac{dz^4}{\eps})$ space 
+	and $\O(\frac{dz^3}{\eps})$ update/query time.
 \end{theorem}
 
-\subsection{The Case $\delta^* \ge C r^*$}
-\label{subsec:bigger}
-
-
-\begin{obs}
-\label{obs:c+4}
-Let $d$ be the distance between arbitrary pair of points from two $C$-separated balls. Then $1 \le \frac{d}{\delta} \le \frac{C+4}{C}$.
-\end{obs}
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=21em]{figs/c_plus_4}
-	\caption{Depiction of two extreme case of Observation~\ref{obs:c+4}}
-	\label{fig:c+4}
-\end{figure}
-
-\begin{obs}
-\label{obs:intersection}
-Let $B_1$ and $B_2$ be two disjoint balls with distance $\delta$ and $B$ be an arbitrary ball of radius at most $\frac{\delta}{2}$. Then $B$ can intersect at most one of $B_1$ and $B_2$.
-\end{obs}
-
-\begin{lemma}
-\label{lem:c-sep}
-Let $\mathcal{P}$ be a set of points and assume that $B_{2,1}^*$ and $B_{2,2}^*$ are $C$-separated ($C \ge 4$) and let $p_1$ be an arbitrary point in $B_{2,1}^*$. Define $S$ as the $z+1$ furthest points of $\mathcal{P}$ from $p_1$. Then $S \cap B_{2,2}^*$ is nonempty.
-\end{lemma}
-\begin{proof}
-By contradiction, assume that $S \cap B_{2,2}^*$ is empty. It is clear that $S$ contains at least one non-outlier point. Let $q$ be the furthest point of $S \cap B_{2,1}^*$ from $p_1$. Consider $B(p_1, \card{p_1q})$. It is clear that $B$ covers $\mathcal{P} \setminus S$. Since $p_1, q \in B_{2,1}^*$, then $\card{p_1q}$ is at most $2r_2^*$. Thus by Observation~\ref{obs:intersection}, $B_{2,2}^* \cap B = \emptyset$. Therefore $B_{2,2}^* \cap \mathcal{P} = \emptyset$ and hence $B_{2,2}^*$ is empty, which contradicts the optimality of this solution.
-\end{proof}
-
-Let $B_1, B_2$ and $B_u$, be instances of a data structure that supports adding a point and gives a $\beta$-approximation for $1$-center problem with $k$ outliers, for $k=0,\dots,z$ (This data structure, does not need to maintain all the points. Suppose that it has a buffer with length $(d+1)(z+1)$ that maintains the most recently added points). Algorithm~\ref{alg:case2} assumes point $p_1$ to be in $B_{2,1}^*$. This algorithm maintains $c_1$ as an arbitrary point in $B_{2,1}^*$ and $c_2$ as a candidate that may be in $B_{2,2}^*$. It tries to divide points into three subdivisions:
-\begin{itemize}
-\item $B_1$, a subset of $\mathcal{P}$ where $B_1 \cap B_{2,2}^* = \emptyset$, that is a set of points that provably lie outside $B_{2, 2}^*$.
-\item $B_2$, a subset of $\mathcal{P}$ along with a \emph{candidate point} $c_p$, such that if $B_{2, 2}^*$ covered the candidate point, then $B_2 \cap B_{2, 1}^* = \emptyset$.
-\item Buffer, with size at most $z$ that if $c_p \in B_{2, 2}^*$ then all of them are outliers.
-\end{itemize}
-Algorithm~\ref{alg:case2} also maintains $B_u$ as union of $B_1$ and $B_2$.
-
-
-\begin{lemma}
-\label{lem:(z+1)-furthest}
-Let $p_1$ be an arbitrary points in $B_{2,1}^{*}$ and $q$ be the $(z+1)$\st furthest point from $p_1$. Then $\frac{C}{C+4}\card{qp_1}$ is a lower bound for $\delta^*$.
-\end{lemma}
-\begin{proof}
-Due to Lemma~\ref{lem:c-sep}, there exists $p_2 \in B_{2,2}^*$ such that $\card{p_1p_2} \ge \card{qp_1}$. Thus, by Observation~\ref{obs:c+4}, $\frac{C}{C+4} \card{p_1p_2} \le \delta^*$. The claim follows immediately.
-\end{proof}
-
-Function \textproc{AddTo$B_1$} is used to add a point $p$ to $B_1$. The point will be added only if the point is within $\delta$\nobreakdash-radius of the center $c_1$, where $\delta$, calculated by Algorithm~\ref{alg:case2}, is $\frac{C}{C+4}\card{qc_1}$ and $q$ is the $(z+1)$\nth furthest point from $c_1$. By Lemma~\ref{lem:(z+1)-furthest}, $\delta$ is a lower bound for $\delta^*$. So any point within $\delta$-radius of $c_1$ is guaranteed to lie outside $B_{2,2}^*$. Thus Function \textsc{AddTo$B_1$} does not violate the property $B_1 \cap B_{2,2}^* = \emptyset$.
-\begin{algorithmic}
-\Function{AddTo$B_1$}{$p$}
-	\If{$p \in B(p_1, \delta)$}
-		\State $B_1 = B_1 \cup \set{p}, B_u = B_u \cup \set{p}$
-		\State \Return{true}
-	\EndIf
-	\State \Return{false}
-\EndFunction
-\end{algorithmic}
-
-Function \textproc{AddTo$B_2$} is used to add a point $p$ to $B_2$. Initially, $B_2$ is empty and $c_2$ and $r_c$ are not initialized. When an appropriate candidate is found, Algorithm~\ref{alg:case2} sets $c_2$ to that candidate and $r_c$ to $\frac{2\card{c_1c_2}}{C}$ and after that, points are added to $B_2$ only if they lie within $r_c$-radius of $c_2$. At this point $c_2$ is considered as the candidate point $c_p$. Clearly the subdivision property for $B_2$ holds initially when $B_2$ consists of the single point $c_2$. All the subsequent points added to $B_2$ are within $r_c$-radius of $c_2$ and given $C\ge 7$, by Observation~\ref{obs:intersection} subdivision property is invariant under this operation.
-
-When $\card{B_2}$ reaches $(d+1)(z+1)$, the candidate point changes to center point of $B_2$ and $r_c$ is increased by a factor of $(2 + \frac{2}{C})$ to completely cover the new candidate point and it's surrounding ball. It is easy to see that $(2 + \frac{2}{C})r_c < \frac{\delta}{2}$ provided $C \ge 14$ and thus by Observation~\ref{obs:intersection} the property is not violated.
-
-\begin{algorithmic}
-\Function{AddTo$B_2$}{p}
-	\If{$c_2$ is set and $p \in B(c_2, r_c)$}
-		\State $B_2 \gets B_2 \cup \set{p}, B_u \gets B_u \cup \set{p}$
-		\If{$\card{B_2} = (d+1)(z+1)$}
-			\State $r_c \gets  (2 + \frac{2}{C}) \times r_c$
-			\For{$p$ in Buffer}
-				\If{$p$ in $B(c_2, r_c)$}
-					\State $B_2 \gets B_2 \cup \set{p}, B_u \gets B_u \cup \set{p}$
-				\EndIf
-			\EndFor
-		\EndIf
-		\State \Return{true}
-	\EndIf
-	\State \Return{false}
-\EndFunction
-\end{algorithmic}
-
-
-
-\begin{prop}
-Every finite set of points in $d$\nobreakdash-dimensional Euclidean space admits a centerpoint.\cite{edelsbrunner1987algorithms}
-\end{prop}
-
-\begin{cor}
-\label{cor:omitting-centerpoint}
-Given a set $\mathcal{P}$ of $k(d+1)$ points in $d$\nobreakdash-dimensional Euclidean space, there is a point $c_p$, not necessarily in $\mathcal{P}$, that any convex object that does not cover $c_p$, leaves at least $k$ points of $\mathcal{P}$ uncovered.
-\end{cor}
-
-Let the new candidate point be the centerpoint of points in $B_2$, when $(z+1)(d+1)$ points have been added to $B_2$. We claim that with $B_2 = B(c_2, (2 + \frac{2}{C})r_c)$, ball $B(c_p, \frac{2\card{c_1c_p}}{C})$ completely covered.
-If $c_p \in B_{2,2}^*$ then by Observation~\ref{obs:c+4}, $r^* \le \frac{\card{c_1c_p}}{C}$. Thus $B_{2,2}^* \subseteq B(c_p, \frac{2\card{c_1c_p}}{C})$.
-Since:
-\[
-\frac{2\card{c_1c_p}}{C} \leq \frac{2}{C}(\card{c_1c_2} + r_c) \leq (1 + \frac{2}{C})r_c
-\]
- then $B_{2,2}^* \subseteq B(c_p, (1 + \frac{2}{C})r_c) \subseteq B(c_2, (2 + \frac{2}{C})r_c)$. Thus supposing $C \ge 14$ and by Observation~\ref{obs:intersection}, $B_2 \cap B_{2,1}^* = \emptyset$. Thus the claim follows.
-
-At some point during the execution of Algorithm \ref{alg:case2}, the assumption about $c_p \in B_{2,2}^*$ might be contradicted when the buffer overflows. We can then conclude that
-% Sahand: Verify this:
-%$c_2 \notin B_{2,2}^*$.
- $c_p \notin B_{2,2}^*$.
-At this point, behavior of Algorithm~\ref{alg:case2} depends on size of $B_2$ relative to $(d+1)(z+1)$:
-\begin{itemize}
-\item If $\card{B_2} < (d+1)(z+1)$ then $c_2$ can be added to $B_1$, by definition of $B_1$.
-The algorithm then tries all points in $B_2 \cup \mbox{Buffer} \setminus \set{c_2}$, until it finds a suitable candidate point for $c_2$ that does not leave too many points uncovered. Note that at most $(z+1)(d+1) + z$ points have to be tried.
-\item If $\card{B_2} \ge (d+1)(z+1)$, let $q$ be the $(z+1)$\st furthest point from $p_1$ and $p'$ be the nearest point of ball $B_2(c_2, r_c)$ to $p_1$. Then $\card{qp_1} > \card{p'p_1}$, since $B_2$ contains more than $z+1$ points. So by Lemma~\ref{lem:(z+1)-furthest}:
-\[
-\delta \ge \frac{C \card{qp_1}}{C+4} \ge \frac{C}{C+4} (\card{c_1c_2} - r_c) = \frac{C^2 - 2C}{2C + 8} r_c
-\]
-As a result, if $C \geq 14$ then $(2 + \frac{2}{C}) r_c < \frac{\delta}{2}$. As shown in Observation~\ref{obs:intersection}, the ball $B_2(c_2, (2 + \frac{2}{C}) r_c)$ has nonempty intersection with exactly one of $B_{2, 1}^*$ and $B_{2, 2}^*$ (not all of its points can be outliers). Since the buffer overflowed, the assumption about the candidate point, $c_p$, being in $B_{2,2}^*$ must have been invalid. By Corollary~\ref{cor:omitting-centerpoint} if $c_p$ is not covered, then circle $B_{2,1}^*$ leaves at least $z+1$ points of $B_2$ uncovered, and there will be more than $z$ outliers. Thus, $c_p$ has to be covered. As a result, $c_p \in B_{2, 1}^*$ and all the points of $B_2$ can be added to $B_1$. This is done by replacing $B_1$ with $B_u$ and initializing $B_2$ over again.
-\end{itemize}
-
-{
-\algrenewcommand\algorithmicindent{0.6em}%
-\begin{algorithm}
-\label{alg:case2}
-\leavevmode
-\begin{algorithmic}
-\State $\delta \gets 0, r_c \gets 0$
-\State $c_1 \gets p_1$
-\For{$p \in P$}
-	\If{at least $z+1$ points have been processed}
-		\State $q \gets$  $(z+1)$-furthest point from $c_1$
-	\Else
-		\State $q \gets c_1$
-	\EndIf
-	\State $\delta \gets \frac{C}{C+4} \card{c_1q}$
-	\If{\Call{AddTo$B_1$}{$p$} = False and  \Call{AddTo$B_2$}{$p$} = False}
-% Sahand: is ! a familiar notation for CS people? should we use \neg? or not?
-% Kiana: Agree, What about this one?
-		\State add $p$ to Buffer
-		\While{$\card{\mbox{Buffer}} > z$}
-			\If{$\card{B_2} \ge (d+1)(z+1)$}
-				\State $B_1 \gets B_u$, $B_2 \gets \emptyset$
-			\ElsIf{$c_2$ is set}
-				\State $B_1 \gets B_1 \cup \set{c_2}$, $B_u \gets B_u \cup \set{c_2}$
-			\EndIf
-			\State $T \gets \mbox{Buffer} \cup B_2 - \set{c_2}$
-			\State $\mbox{Buffer} \gets \emptyset, B_2 \gets \emptyset$
-			\If{first iteration of while}
-				\For{$p \in T$}
-					\If{\Call{AddTo$B_1$}{$p$}}
-						\State Remove $p$ from $T$.
-					\EndIf
-				\EndFor
-			\EndIf
-			\State $c_2 \gets$ arbitrary point in $T$
-			\State $r_c \gets \frac{2}{C}\card{c_1 c_2}$
-			\For{$p \in T$}
-				\State \Call{AddTo$B_2$}{$p$}
-			\EndFor				
-			\State $\mbox{Buffer} \gets T \setminus B_2$
-		\EndWhile
-	\EndIf
-\EndFor
-\end{algorithmic}
-\end{algorithm}
-}
-
-Let $B_1'$, $B_2'$ and $B_u'$ be the $1$-centers obtained from $B_1$, $B_2$ and $B_u$ by the $\beta$-approximation algorithm, respectively. To answer a query, we use these balls. By the initial assumption about $p_1$, $B_1$ contains $B_{2,1}^*$ and $B_1'$ is a $\beta$-approximation for $B_{2,1}^*$. But for $B_2$ it may be the case that our assumption about the candidate point was incorrect or non-optimal, so $B_2'$ is not a good approximation for $B_{2,2}^*$. There are two cases for $\card{B_2}$ to be considered. If $\card{B_2} < (z+1)(d+1)$, then we can try each point in $B_2 \cup \mbox{Buffer}$ as a candidate for the candidate point. If $\card{B_2} \ge (d+1)(z+1)$, then there is no need for points in $B_2$ to be considered, since for those points as candidate point, $B_1$ would be replaced by $B_u$ and $B_2$ would be empty. Thus it suffices to consider points of Buffer as candidates and compare them to the solution $(B_u, \emptyset)$.
-{
-\algrenewcommand\algorithmicindent{0.8em}%
-\begin{algorithm}
-\label{alg:query}
-\leavevmode
-\begin{algorithmic}
-\Function{Query}{}
-	\State solutions = [\Call{QuerySubdivision}{$B_1$ $B_2$ Buffer}]
-	
-	\If {$\card{B_2} \geq (d+1)(z+1)$}
-		\State candidates $\gets$ Buffer
-	\Else
-		\State candidates $\gets$ Buffer $\cup B_2 - \set{c_2}$
-	\EndIf
-
-	\For{$c_2 \in$ candidates}
-		\State $r_c \gets \frac{2}{C} \card{c_1 c_2}$
-		\State $B_2 \gets \emptyset$, Buffer $\gets \emptyset$ 
-		\For{$p \in$ candidates}
-			\If{not \Call{AddTo$B_2$}{$p$}}
-				\State Add $p$ to Buffer.
-			\EndIf
-		\EndFor
-		\State Add \Call{QuerySubdivision}{$B_1$, $B_2$, Buffer} to solutions.
-	\EndFor
-	\State \Return \Call{$\min$}{solutions}
-\EndFunction
-\Statex
-\Function{QuerySubdivision}{$B_1$, $B_2$, Buffer}
-	\State solutions $\gets$ empty list
-	\For{$k \gets 0, \dots,(z - \card{\mbox{Buffer}})$}
-		\State $r \gets \max(1-\mbox{center}(B_1, k), 1-\mbox{center}(B_2, z - \card{\mbox{Buffer}} - k))$
-		\State Add $r$ to solutions.
-	\EndFor
-	\State \Return \Call{$\min$}{solutions}
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-}
-
-Suppose that our data structure for maintaining $B_1$, $B_2$ and $B_u$ uses $S(n,z,d)$ space, $T(n,z,d)$ update and $Q(n,z,d)$ query time. Note that by $Q_{o}(zd,z,d)$ we mean the query time for the offline $1$-center problem with $z$ outlier in $d$ dimensions. The best known algorithm for $1$-center without outliers is $1.22$-approximation by \cite{chan2014streaming, agarwal2010streaming}. The buffering framework introduced in \cite{zarrabi2009streaming} with $\cO(dz^3 + (\frac{d}{\eps^3})\log(\frac{1}{\eps}))$ space complexity, can be used with this algorithm as subroutine to achieve a $(1.22\sqrt{2})$-approximation ($1.22\sqrt{2} < 1.8$) for $1$-center problem with outliers.
+\subsection{Final Result}
 
 \begin{theorem}
-\label{thm:2nd-cmplx}
-Space complexity of Algorithm~\ref{alg:case2} is $\cO(dz+S(n,z,d))$. It takes $\cO^*(dzT(n,z,d))$ time for update. Query time in Algorithm~\ref{alg:query} is $\cO(zQ(n,z,d) + dz(dz+zQ_o(zd,z,d)))$ and it returns two centers that guarantee a $(1.8 + \eps)$-approximation for $2$-center problem with outliers.
-% Sahand: Our analysis requires that $\beta \le 1.8+\eps$. Should we mention that somewhere? Someone might suspect using a worse approximation algorithm for 1-center he can achieve the same result with better time complexity.
-% Kiana: I don't think so.
+	A $(1.8 + \eps)$-approximation to the 2-center problem with $z$ outliers
+	can be maintained in the streaming model using 
+	$\O(dz^2 (d^2 + z^2/\eps))$ space and 
+	$\poly(d, z, {1 \over \eps})$ update/query time.
 \end{theorem}
 
 \begin{proof}
-The space complexity for this algorithm is derived from the space used by $B_1$, $B_2$, $B_u$ and the Buffer which is obviously $\cO(dz+S(n,z,d))$. The while loop runs at most once for each point, so amortized time is $\cO(zdT(n,z,d))$. The candidates in the Algorithm \ref{alg:query} are at most $zd$ points  so the query time will easily follows.
+This is immediate from Theorems~\ref{thm:far-cmplx} and~\ref{thm:close-cmplx}.
+%and the fact that $p_1$ was assumed to be a non-outlier.
 \end{proof}
 
-\begin{theorem}
-Our algorithm uses $\cO(zS(n, z, d) + \frac{dz^4}{\eps})$ space and has time complexity $\cO^*(dz^2T(n,z,d) + \frac{dz^5}{\eps})$ and $\cO(z^2Q(n,z,d) + dz^2(dz+zQ_o(zd,z,d)) + \frac{dz^4}{\eps})$ for update and query operations, respectively. It returns a $(1.8 + \eps)$-approximate solution for $2$-center problem with outliers in any dimension.
-\end{theorem}
-\begin{proof}
-Result follows immediately from Theorems~\ref{thm:1st-cmplx} and \ref{thm:2nd-cmplx} and the fact that $p_1$ was assumed to be a non-outlier.
-\end{proof}
 
-with space complexity of Zarrabi-zadeh \cite{zarrabi2009streaming} algorithm, the space complexity of our algorithm would be $\cO(\frac{dz^4}{\eps} + \frac{dz}{\eps^3})$.
+%\begin{theorem}
+%Our algorithm uses $\O(zS(n, z, d) + \frac{dz^4}{\eps})$ space and has time complexity $\O^*(dz^2T(n,z,d) + \frac{dz^5}{\eps})$ and $\O(z^2Q(n,z,d) + dz^2(dz+zQ_o(zd,z,d)) + \frac{dz^4}{\eps})$ for update and query operations, respectively. It returns a $(1.8 + \eps)$-approximate solution for 2-center problem with outliers in any dimension.
+%\end{theorem}
+%
+%\noindent 
+%Using the algorithm of~\cite{zarrabi2009streaming}, 
+%the space complexity of our algorithm is $\O(\frac{dz^4}{\eps} + \frac{dz}{\eps^3})$.
 
 %---------------------------- Conclusions ---------------------
 
 \section{Conclusions}
 \label{sec:conc}
 
-In this paper, we presented a $(1.8 + \eps)$-approximation streaming algorithm for $2$-center problem with outliers in Euclidean space, which improves previous $(3+\eps)$-approximation algorithm by Charikar~\etal~\cite{mccutchen2008streaming}. It remains open whether there can be any improvements in approximation factor. It is an interesting problem to find an algorithm with better approximation factor or space complexity. It is also interesting to see if the ideas in this paper can be applied to $k$-center problem with outliers in streaming data model, even for small $k$.
+In this paper, we presented a $(1.8 + \eps)$-approximation streaming algorithm for 2-center problem with outliers in Euclidean space.
+It improves the previous $(4+\eps)$-approximation algorithm available for the problem 
+due to Charikar~\etal~\cite{mccutchen2008streaming}. 
+Finding better approximation factor or space complexity
+is an interesting problem that remains open.
+It is also interesting to see if the ideas in this paper 
+can be extended to the $k$-center problem with outliers in the data stream model
+for any $k$, or even for small values of $k \ge 3$.
+
+
+\paragraph{Acknowledgement}
+The authors would like to thank Kiana Ehsani and Sahand Mozaffari 
+for their thoughtful discussions, 
+and for their contribution to improve the presentation of this paper.
+
 
 %--------------- BIBS --------------------
 
