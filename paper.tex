@@ -101,7 +101,7 @@
 %\title{Computing 2-Center with Outliers on High-Dimensional Data Streams}
 \author{Behnam~Hatami\thanks{Department of Computer Engineering, 
 	Sharif University of Technology.
-	{\tt hatami@ce.sharif.edu}}
+	{\tt bhatami@ce.sharif.edu}}
 	\and 
 	Hamid~Zarrabi-Zadeh\thanks{Department of Computer Engineering, 
 	Sharif University of Technology.
@@ -793,7 +793,7 @@ Second case is in \Cref{alg:case-1}, when the buffer becomes full and $c_2$ has 
 
 In this case, if $|B_2| < \dz $, then $c_2 = c_p$. In this case we add $c_2$ to $B_1$. By contradiction assume that $c_p \in B_2^*$, then due to variant (d) part 1, $2r^* \leq r$ and by Lemma \ref{lem:2r}, there should be at most $z$ points outside $B_1 \cup B_2$ which contradicts size of the buffer($|Buffer| > z+1$). 
 
-If $|B_2| \geq \dz$, then $c_p$ is the centerpoint of the first $\dz$ points currently in $B_2$. in this case, we add all of $B_2$ points to $B_1$. Due to variant (b), $r \leq \delta/2 < \delta^*/2$. So By Lemma \ref{obs:center-point} then $$ By Lemma \ref{lem:} By contradiction assume that $B_2 \cap B_2^* \neq \emptyset$. If $c_p \in B_2^*$, then by variant (b), $B(c_p, \frac{2 \len{c_1 c_p}}{\alpha}) \subset B(c_2, r)$
+If $|B_2| \geq \dz$, then $c_p$ is the centerpoint of the first $\dz$ points currently in $B_2$. in this case, we add all of $B_2$ points to $B_1$. Due to variant (b), $r \leq \delta/2 < \delta^*/2$. So By Lemma \ref{obs:center-point} then $c_p \in B_1^*$ or $c_p \in B_2^*$. By cantradiction assume that $c_p \in B_2^*$.
 }
 \item [(d)] {
 	\begin{enumerate}
@@ -914,16 +914,16 @@ This is done by replacing $B_1$ with $B_1 \cup B_2$, and resetting $B_2$ to empt
 \end{proof}
 
 
-\begin{lemma}
-\label{lem:}
-	After termination of \Cref{alg:case-1}, 
-	if $|B_2| \ge \dz$ and $\cp \not\in B_2^*$,
-	then $B_2 \cap B_2^* = \emptyset$.
-\end{lemma}
+% \begin{lemma}
+% \label{lem:}
+%	After termination of \Cref{alg:case-1}, 
+%	if $|B_2| \ge \dz$ and $\cp \not\in B_2^*$,
+%	then $B_2 \cap B_2^* = \emptyset$.
+%\end{lemma}
 
-\begin{proof}
-	TBA.
-\end{proof}
+%\begin{proof}
+%	TBA.
+%\end{proof}
 
 
 \paragraph{Streaming Model}
