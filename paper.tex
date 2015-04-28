@@ -9,6 +9,8 @@
 
 \usepackage{algorithm}
 \usepackage[noend]{algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
 
 \usepackage{cleveref}
 
@@ -119,7 +121,7 @@
 \begin{abstract}
 We study the Euclidean 2-center problem with outliers in the data stream model. 
 Given a stream of points in arbitrary $d$ dimensions, the goal is to find two congruent balls 
-of minimum radius covering all but $z$ points. 
+of minimum radius covering all but $z$ points (\Cref{fig:definition}). 
 We provide a $(1.8+\eps)$-approximation streaming algorithm for the problem, 
 improving upon the previous $(4 + \eps)$-approximation algorithm available for the problem.
 The space complexity and update time of our algorithm is $\poly(d, z, {1 \over \eps})$,
@@ -193,6 +195,13 @@ in $\O(n \log n + z^{3} n^{\eps})$ time, for any $\eps > 0$,
 using Matou{\v{s}}ek's framework~\cite{matouvsek1995geometric}.
 Agarwal~\cite{agarwal2008efficient} gave a randomized 
 $\O(n z^{7} \log^3 z)$-time algorithm for 2-center with $z$ outliers in the plane.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=12em]{figs/definition}
+	\caption{$2$-center problem with 6 outlier}
+	\label{fig:definition}
+\end{figure}
 
 In the streaming model, McCutchen~\etal~\cite{mccutchen2008streaming} 
 and Guha~\cite{guha2009tight} presented algorithms to maintain $(2+\eps)$-approximation 
@@ -487,7 +496,7 @@ and by $\delta^*$ the distance between $B_1^*$ and $B_2^*$.
 To prove our main result, we distinguish between two cases.
 In \Cref{subsec:bigger}, we address the case where $\delta^* > \alpha r^*$, 
 for some constant $\alpha$ to be fixed later.
-(It will be turn out that $\alpha = 14$ is a proper choice.)
+(It will be turn out that $\alpha = 16$ is a proper choice.)
 We then present in \Cref{subsec:smaller} 
 our algorithm for the case of $\delta^* \leq \alpha r^*$.
 
@@ -581,24 +590,24 @@ The claim follows immediately.
 \end{proof}
 
 \begin{lemma}
-\label{lem:}
-	If $p \in B_1^*$ and $q \in B_2^*$,
-	then at most $z$ points of $P$ lie outside $B(p, 2r^*) \cup B(q, 2r^*)$.
+\label{lem:2r}
+	If $p \in B_1^*(c_1, r^*)$ and $q \in B_2^*(c_2, r^*)$,
+	then $B_1^* \subset B(p, 2r^*)$ and $B_2^* \subset B(q, 2r^*)$ and as a result at most $z$ points of $P$ lie outside $B(p, 2r^*) \cup B(q, 2r^*)$.
 \end{lemma}
 
 \begin{proof}
-	TBA.
+	For any arbitrary point $p' \in B_1^*$, $\len{pq} \leq \len{pc_1} + \len{qc_1} \leq 2r^*$ and as a result $B_1^* \subset B(p, 2r^*)$(With similar proof, $B_2^* \subset B(q, 2r^*)$).  Considering that at most $z$ points of $P$ is outlier,  the proof is complete.
 \end{proof}
 
 \begin{lemma}
-\label{lem:}
+\label{lem:center-point}
 	Let $S$ be a subset of $P$ of size at least $\dz$,
-	enclosed by a ball of radius $\delta^* / 2$.
-	Then the centerpoint of $S$ lies either inside $B_1^{*}$ or inside $B_2^{*}$.
+	enclosed by a ball $B$ of radius less than $\delta^* / 2$.
+	Then the centerpoint $c_p$ of $S$ lies either inside $B_1^{*}$ or inside $B_2^{*}$.
 \end{lemma}
 
 \begin{proof}
-	TBA.
+	By Observation~\ref{obs:intersection}, ball $B$ intersects exactly one of $B_1^*$ and $B_2^*$ (all points of $S$ can not be outlier). Without loss of generality, Let $B$ intersect with $B_1^*$. If $c_p \not \in B_1^*$, then there is at least $\ceil{\frac{\dz}{d+1}} = z+1$ points in $S$ locate outside of $B_1^*$ and $B_2^*$, which contradicts existance of at most $z$ outlier.
 \end{proof}
 
 \paragraph{The Algorithm}
@@ -656,7 +665,7 @@ to maintain the invariants to be defined shortly in Lemma~\ref{lem:invariants}.
 %					\ENDIF
 %				\ENDFOR
 %			\ENDIF
-			\STATE $c_2 \gets$ an arbitrary point of $T$
+			\STATE $c_2 \gets$ (z+1)-furthest point of $T$ from $c_1$
 			\STATE $\rc  \gets \frac{2}{\alpha}\len{c_1 c_2}$
 			\FOR{$p \in T$}
 				\STATE \Call{AddToB$_2$}{$p$}
@@ -745,17 +754,67 @@ $\cp$ is the centerpoint of the first $\dz$ points currently in $B_2$.
 
 \begin{enumerate}
 \item [(a)] $\delta < \delta^*$ %$\delta$ is a lower bound of $\delta^*$
-\item [(b)] $B_1 \cap B_2^* = \emptyset$
-\item [(c)]  if $\cp \in B_2^*$, then 
+\item [(b)] if $c_2$ is set, then
+\begin{enumerate}
+	\item[1.] $r_0 = \frac{2 \len{c_1 c_2}}{\alpha} \leq \delta/6$
+	\item[2.] $r = (2 + \frac{2}{\alpha})r_0 \leq \delta/2$
+	\item[3.] $B(c_p, \frac{2 \len{c_1 c_p}}{\alpha}) \subset B_2(c_2, r)$
+\end{enumerate}
+\item [(c)] $B_1 \cap B_2^* = \emptyset$
+\item [(d)]  if $\cp \in B_2^*$, then 
 	\begin{enumerate}
-		\item [1.] $2r^* \le r \le \delta /2$
-		\item [2.] $B_2 \cap B_1^* = \emptyset$
-		\item [3.] all points in $\Buffer$ are outliers
+		\item [1.] $2r^* \le r$
+		\item [3.] $B_2 \cap B_1^* = \emptyset$
+		\item [4.] all points in $\Buffer$ are outliers
 	\end{enumerate}
+
 \end{enumerate}
 \end{lemma}
 
-\begin{proof}
+\begin{proof} The proof consists of three parts and each part use previous parts:
+\begin{enumerate}
+\item [(a)]{
+When a $p$ arrives in the stream, \textproc{AddToB$_1$} is called, which tries to add $p$ to ball $B_1$.
+By Lemma \ref{lem:(z+1)-furthest}, if point $q$ be the $(z+1)$-furthest point of the stream from $c_1$,
+then $\frac{\alpha}{\alpha+4} \len{c_1q}$ is an increasing stream of lowerbounds for $\delta^*$. So at any point, $\delta < \delta^*$.
+} 
+\item [(b)]
+	\begin{enumerate}
+		\item [1.]{ If $c_2$ is set, then it is $(z+1)$-furthest points of a set $T \subset P$ from $c_1$. Let q be the $(z+1)$-furthest point of the Stream from $c_1$ at that state, then $\len{c_1c_2} \leq \len{c_1q}$ and as a result (for $16 \leq \alpha$) $r_0 \leq \delta / 6$.}
+		\item [2.] {By previous part $(2 + \frac{2}{\alpha})r_0 \leq 3r_0 \leq \delta /2$}
+		\item[3.]{ If $|B_2| < \dz$ then $c_p = c_2$ and $r = r_0$, so $B_2 = B(c_p, \frac{2 \len{c_1 c_p}}{2})$.
+
+				if $|B_2| \ge \dz$ then $c_p$ is the centerpoint of the first $\dz$ points currently in $B_2$ and $r = (2 + \frac{2}{\alpha}) r_0$. because the centerpoint of a set of points is in their convex hull, then $c_p \in B(c_2, r_0)$. So $\len{c_2, c_p} \leq r_0$ and $\frac{2 \len{c_1 c_p}}{\alpha} \leq \frac{2 (\len{c_1 c_2} + \len{c_2 c_p})}{\alpha} \leq r_0(1 + \frac{2}{\alpha})$ and As a result, $B(c_p, \frac{2 \len{c_1 c_p}}{2}) \subset B_2(c_2, r_0 + r_0(1 + \frac{2}{\alpha}))$.}
+	\end{enumerate}
+\item [(c)] {
+A point $p$ can be added to $B_1$ in two parts of the Algorithm. 
+First case is in \Cref{alg:addB1}, when  $\len{pc_1} \leq \delta$, which due to variant (a), garanties $\len{pc_1} \le \delta^*$, so $p \not \in B_2^*$.
+Second case is in \Cref{alg:case-1}, when the buffer becomes full and $c_2$ has been set before. 
+
+In this case, if $|B_2| < \dz $, then $c_2 = c_p$. In this case we add $c_2$ to $B_1$. By contradiction assume that $c_p \in B_2^*$, then due to variant (d) part 1, $2r^* \leq r$ and by Lemma \ref{lem:2r}, there should be at most $z$ points outside $B_1 \cup B_2$ which contradicts size of the buffer($|Buffer| > z+1$). 
+
+If $|B_2| \geq \dz$, then $c_p$ is the centerpoint of the first $\dz$ points currently in $B_2$. in this case, we add all of $B_2$ points to $B_1$. Due to variant (b), $r \leq \delta/2 < \delta^*/2$. So By Lemma \ref{obs:center-point} then $$ By Lemma \ref{lem:} By contradiction assume that $B_2 \cap B_2^* \neq \emptyset$. If $c_p \in B_2^*$, then by variant (b), $B(c_p, \frac{2 \len{c_1 c_p}}{\alpha}) \subset B(c_2, r)$
+}
+\item [(d)] {
+	\begin{enumerate}
+		\item [1.]{
+		Due to  Observation \ref{obs:c+4}, if $c_1 \in B_1^*$ and $c_p \in B_2^*$ then $1 \leq \frac{\len{c_1 c_p}}{\delta^*} \leq \frac{\len{c_1 c_p}}{\alpha r^*}$ and as a result $2r^* \leq \frac{2 \len{c_1c_p}}{\alpha}$.
+
+	if $|B_2| < \dz$ then $c_p = c_2$ and By \Cref{alg:case-1}, $r = r_0 = \frac{2}{\alpha} \len{c_1 c_2}$, so $2r^* \leq r$.
+
+	if $|B_2| \ge \dz$ then similar to variant (b) $2r^* \leq \frac{2 \len{c_1 c_p}}{\alpha} \leq (1 + \frac{2}{\alpha})r_0 \leq (2 + \frac{2}{\alpha})r_0 = r$.
+
+}
+		\item [2.]{ Due to previous part, if $c_p \in B_2^*$ then $2r^* \leq r \leq \delta /2$ and $c_p \in B_2$. Due to variant (a) and Observation \ref{obs:intersection}, $B_2$ intersect only with $B_2^*$ and so $B_2 \cap B_1^* = \emptyset$.
+}
+		\item [3.]{
+}
+	\end{enumerate}
+}
+\end{enumerate}
+
+
+
 TBA \ 
 (All non-used parts from the previous version are copied here.
 They might be useful for composing the proof of this lemma.)
@@ -976,13 +1035,37 @@ the space and update time is increased by a factor of $O(z)$.
 
 \subsection{The Case $\delta^* \leq \alpha r^*$}
 \label{subsec:smaller}
-Our idea in this section is derived from~\cite{ahn2014computing, kim2014improved}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states. In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, there exist at most two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
+Our idea in this section is derived from~\cite{ahn2014computing, kim2014improved}. To avoid duplication, we just outline the important parts of their algorithm and our modifications to it. Kim's algorithm has $10$ different states (\Cref{fig:dag}). In each step one or many of the states can be valid and their algorithm considers all of them in parallel. In each state, there exist at most two balls. A transition between the states occurs whenever a point not covered by any of the two balls has arrived in the stream. This transition graph starts with a blank node (with no balls) and has depth four (without considering the end nodes). It is straightforward to see that this transition graph is a DAG.
 Our modification is on the transition part.
 Points that are covered by current solution can safely be ignored, as they do not cause any transitions in the state, and only those points that lie outside the solution are candidates for being an outlier.
 In each state the number of points that should be considered as outliers is unknown. So all the possible choices should be considered. It is sufficient to have four integers, $n_1,\dots, n_4$ representing the number of outliers in depth $1$ to $4$, such that $\sum_{i=1}^{4} n_i=z$. 
 The modified algorithm is presented in \Cref{alg:smallc}.
 In this algorithm, \textproc{NthOutlier}$(n,p)$ returns the $n$-th point 
 arriving after $p$ in $P$ that does not lie in the current candidate solution.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+  [scale=.75,auto=left,every node/.style={circle,fill=blue!15}]
+ \tikzset{edge/.style = {->,> = latex'}}
+  \node (S) at (1,2) {S};
+  \node (1) at (3,2) {1};
+  \node (2a) at (5,1)  {2a};
+  \node (3a) at (5,4)  {3a};
+  \node (2b) at (7,0)  {2b};
+  \node (3b) at (7,2)  {3b};
+  \node (3d) at (7,4)  {3d};
+  \node (2c) at (9,0)  {2c};
+  \node (3c) at (9,2)  {3c};
+  \node (3e) at (9,4)  {3e};
+  \node (E) at (11, 2) {E};
+
+  \foreach \from/\to in {S/1,1/2a,1/3a,2a/2b,2b/2c,2c/E,3a/3b,3a/3b,3a/3d,3b/3c,3d/3e,3c/E,3e/E}
+    \draw[edge] (\from) to (\to);
+
+\end{tikzpicture}
+\caption{State Transition of Kim \etal \cite{kim2014improved}} algorithm \label{fig:dag}
+\end{figure}
 
 \begin{algorithm}
 \caption{\sc 2-CenterCase2$(P, z, r)$} 
@@ -1070,9 +1153,9 @@ Now, suppose that $B_1^*(c_1^*, r^*)$ and $B_2^*(c_2^*, r^*)$
 are the balls in an optimal solution for the 2-center problem with $z$ outliers.
 Let $c$ be the midpoint of the segment connecting 
 $c_1^*$ to $c_2^*$ (see Figure~\ref{fig:2lt1}).
-Clearly, $B\left(c, \frac{\delta}{2} + 2r_2^*\right)$ covers both $B_1^*$ and $B_2^*$. 
+Clearly, $B\left(c, \frac{\delta}{2} + 2r^*\right)$ covers both $B_1^*$ and $B_2^*$. 
 Therefore, it is a feasible solution for the 1-center problem with $z$ outliers.
-Hence, $ r_1^* \le \left(2 + \frac{\alpha}{2}\right) 2^*$.
+Hence, $ r_1^* \le \left(2 + \frac{\alpha}{2}\right) r^*$.
 \end{proof}
 
 \begin{figure}[th]
