@@ -853,7 +853,7 @@ For each candidate $c \in C$, \Cref{alg:query} constructs $B'_1(c_1, \max \{\del
 First, consider the candidate $c$ that equals to current $c_2$, then $B_1 = B'_1$. 
 Since $\radius{c_2} \leq r \leq \delta/2$ (invariant (b) part 1) and $B'_2 \subset B_2$ then we don't need to construct any new set. 
 In general case, when $c \neq c_2$, we know that $B_1 \subset B'_1$, so we just need to see which of $\Buffer \cap B_2$ points located in $B'_1$.
-When $|B_2| \geq \dz$ and $c \neq c_2$, then it means that assumed $c_p \not \in B_2^*$. So By Lemma \ref{lem:B2dz}, $B_2$ can be added to $B'_1$ without contradicting invariant (a). 
+When $|B_2| \geq \dz$ and $c \neq c_2$, then it means that assumed $c_p \not \in B_2^*$. So By Lemma \ref{lem:B2dz}, $B_2$ can be added to $B'_1$ without contradicting invariant (c). 
 So in this case, just need to see which points of $\Buffer$ should be added to $B'_1$. 
 \Cref{alg:query} use functions \textproc{AddToB$'_1$} and \textproc{AddToB$'_2$} for adding a point to $B'_1$ and $B'_2$ respectively. 
 Their definition are totally same as functions \textproc{AddToB$_1$} and \textproc{AddToB$_2$} except that, they add point to $B'_i$ instead of $B_i$($i = 1, 2$).
@@ -861,7 +861,7 @@ Their definition are totally same as functions \textproc{AddToB$_1$} and \textpr
 As \Cref{alg:query}, consider all valid cases of $c$, for one of $c \in C$, $c \in B_2^*$. 
 Consider that $c$ as $c^*$ and corresponding $B'_1$ and $B'_2$ as $B''_1$ and $B''_2$. 
 Since $1 \leq \frac{\len{c_1 c^*}}{\alpha^*} < \frac{\len {c_1 c^*}}{\alpha r^*}$(By Observation \ref{obs:c+4}) then $2r^* \leq \radius{c^*}$ and as a result $B^*_1 \subset B''_1$ and $B^*_2 \subset B''_2$ (By Lemma \ref{lem:2r}).
-On the other hand, due to invariant (a) and distance of new points added to $B''_1$ compare to $B_1$ is less than $\len{c_1 p} \leq \max \{\delta, \radius{c^*} \}$, so $B''_1 \cap B_2^* = \emptyset$.
+On the other hand, due to invariant (c) and distance of new points added to $B''_1$ compare to $B_1$ is less than $\len{c_1 p} \leq \max \{\delta, \radius{c^*} \}$, so $B''_1 \cap B_2^* = \emptyset$.
 As a result $B''_1$ and $B''_2$ totally covers $B_1^*$  and $B_2^*$ respectively, with some extra outlier points and remaining points in $\Buffer$ are certainly outliers.
 The only unknown part is that \Cref{alg:query} does not know how many outliers are in $B''_1$ and $B''_2$.
 So \Cref{alg:compute-min} tries all possible cases and choose the one with the minimum radius.
