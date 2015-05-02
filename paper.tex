@@ -217,6 +217,7 @@ $\O(n z^{7} \log^3 z)$-time algorithm for 2-center with $z$ outliers in the plan
 	\includegraphics[width=13em]{figs/definition}
 	\caption{An example of $2$-center with 6 outliers}
 	\label{fig:definition}
+	\vspace{-.5em}
 \end{figure}
 
 In the streaming model, McCutchen~\etal~\cite{mccutchen2008streaming} 
@@ -659,7 +660,7 @@ and picks $c_2$ among the points processed so far as a candidate
 for being the center of $B_2$.
 Moreover, the algorithm maintains two values $\delta$ and $r$,
 where at any time, $\delta$ is a lower bound of $\delta^*$, 
-and $r$ is an upper bound of $2r^*$ (under a specific condition). %(if $c_p \in B_2^*$).
+and $r$ is an upper bound of $2r^*$ (under a certain condition). %(if $c_p \in B_2^*$).
 
 Our algorithm is presented in \Cref{alg:case-1}.
 For each input point $p \in P$, the algorithm first tries 
@@ -792,7 +793,7 @@ $\cp$ is the centerpoint of the first $\dz$ points currently in~$B_2$.
 \item [(b)] if $c_2$ is set, then
 \begin{enumerate}
 	\item[1.] $r \leq \delta/2$
-	\item[2.] $B(c_p, \radius{c_p}) \subset B_2(c_2, r)$
+	\item[2.] $B(c_p, \radius{c_p}) \subseteq B_2(c_2, r)$
 \end{enumerate}
 \item [(c)] $B_1 \cap B_2^* = \emptyset$
 \item [(d)]  if $\cp \in B_2^*$, then 
@@ -819,42 +820,76 @@ implies that $\delta < \delta^*$.
 %then $\delta = 0$, and hence, the invariant holds.
 
 Invariant (b1): 
-When an appropriate candidate for $c_2$ is found, 
-$c_2$ is set to that candidate by the main algorithm (Algorithm~\ref{alg:case-1}),
+%When an appropriate candidate for $c_2$ is found by Algorithm~\ref{alg:case-1}, 
+%$c_2$ is set to that candidate point,
+%and $\rc$ is set to $\frac{2}{\alpha}\len{c_1c_2}$.
+%After that, points are added to $B_2$ by function \textproc{AddToB$_2$}
+%only if they are within $\rc$-radius of $c_2$. 
+When $c_2$ is set by Algorithm~\ref{alg:case-1}, 
+it is the $(z+1)$-furthest point from $c_1$ in a set $T \subseteq P$,
 and $\rc$ is set to $\frac{2}{\alpha}\len{c_1c_2}$.
-After that, points are added to $B_2$ by function \textproc{AddToB$_2$}
-only if they are within $\rc$-radius of $c_2$. 
+Let $q$ be the $(z+1)$-furthest point from $c_1$ in the stream at that moment.
+Then $\len{c_1c_2} \leq \len{c_1q}$.
+Assuming $\alpha \ge 16$, we have 
+$\radius{c_2} \leq \frac{1}{6}\frac{\alpha \len{c_1 q}}{(\alpha + 4)} \leq \delta / 6$, 
+and hence,  
+$$
+	r \leq (2 + \frac{2}{\alpha})\radius{c_2} \leq 3 \times \radius{c_2}  \leq \delta /2,
+$$
+which means that after increasing $r$ by \textproc{AddToB$_2$},
+the invariant still holds.
 
-If $c_2$ is set, then it is the $(z+1)$-furthest point from $c_1$ in a set $T \subset P$.
-Let q be the $(z+1)$-furthest point from $c_1$ in the stream at that state, then $\len{c_1c_2} \leq \len{c_1q}$ and since (for $16 \leq \alpha$) $\radius{c_2} \leq \frac{1}{6}\frac{\alpha \len{c_1 q}}{(\alpha + 4)} \leq \delta / 6$, then 
-$$r \leq (2 + \frac{2}{\alpha})\radius{c_2} \leq 3 \radius{c_2}  \leq \delta /2.$$
+Invariant (b2): If $|B_2| < \dz$, then $c_p = c_2$ and $r = \radius{c_2}$, 
+and hence, $B_2 = B(c_p, \radius{c_p})$. 
+When the size of $B_2$ reaches $\dz$, 
+the central point $\cp$ moves to the centerpoint of $B_2$,
+and $\rc$ is increased by a factor of $(2 + \frac{2}{\alpha})$. 
+Because the centerpoint of $B_2$ locates in $B_2$, then $c_p \in B(c_2, \radius{c_2})$.
+Thus, if $|B_2| \ge \dz$ then $\len{c_2 c_p} \leq \radius{c_2}$, and hence
+$$
+	\radius{c_p} \leq \frac{2 (\len{c_1 c_2} + \len{c_2 c_p})}{\alpha} \leq \radius{c_2}(1 + \frac{2}{\alpha}).
+$$ 
+Therefore, $B(c_p, \radius{c_p}) \subseteq B_2(c_2, \radius{c_2}(2 + \frac{2}{\alpha}))$.
 
-In part 2, if $|B_2| < \dz$ then $c_p = c_2$ and $r = \radius{c_2}$, so $B_2 = B(c_p, \radius{c_p})$. 
-When the size of $B_2$ reaches $\dz$, the central point $\cp$ moves to the centerpoint of $B_2$ and $\rc$ increases by a factor of $(2 + \frac{2}{\alpha})$. 
-Because the centerpoint of $B_2$ locate in $B_2$, then $c_p \in B(c_2, \radius{c_2})$.
-So if $|B_2| \ge \dz$ then $\len{c_2 c_p} \leq \radius{c_2}$ and as a result
-$$\radius{c_p} \leq \frac{2 (\len{c_1 c_2} + \len{c_2 c_p})}{\alpha} \leq \radius{c_2}(1 + \frac{2}{\alpha})$$ 
-So $B(c_p, \radius{c_p}) \subset B_2(c_2, \radius{c_2}(2 + \frac{2}{\alpha}))$.
+Invariant (c): A point $p$ can be added to $B_1$ in two cases. % by \Cref{alg:case-1}. 
+The first case is in function \textproc{AddToB$_1$}, 
+where the point is added to $B_1$ only if it is within distance $\delta$ of the center $c_1$,  
+%when $\len{pc_1} \leq \delta$, 
+which by invariant (a), 
+guaranties $\len{pc_1} < \delta^*$. Therefore, $p \not \in B_2^*$ in this case.
 
-Invariant (c): A point $p$ can be added to $B_1$ in two parts of the \Cref{alg:case-1}. 
-First case is in function \textproc{AddToB$_1$}, the point will be added to $B_1$ only if it is within distance $\delta$ of the center $c_1$,  when $\len{pc_1} \leq \delta$, which due to invariant (a), guaranties $\len{pc_1} < \delta^*$, so $p \not \in B_2^*$.
-
-Second case is in \Cref{alg:case-1}, whenever the buffer overflows and $B_2$ is non-empty the algorithm takes one of the following actions depending on the size of $B_2$.
+The second case is in \Cref{alg:case-1}, when the buffer overflows and $B_2$ is non-empty.
+The algorithm takes one of the following actions depending on the size of $B_2$.
 If $|B_2| < \dz $, then $c_2 = c_p$. \Cref{alg:case-1} add $c_2$ to $B_1$.
-By contradiction assume that $c_p \in B_2^*$, then due to invariant (b) part 1 and invariant (d) part 1, $2r^* \leq r \leq \delta/2 < \delta^*/2$. So by Lemma \ref{lem:2r}, there should be at most $z$ points outside $B_1 \cup B_2$ which contradicts overflow of the buffer. 
-
+By contradiction assume that $c_p \in B_2^*$, then due to invariants (b1) and (d1), 
+$2r^* \leq r \leq \delta/2 < \delta^*/2$. 
+Therefore, by Lemma \ref{lem:2r}, there must be at most $z$ points outside $B_1 \cup B_2$,
+which contradicts the overflow of the buffer. 
 If $|B_2| \geq \dz$, then $c_p$ is the centerpoint of the first $\dz$ points currently in $B_2$. 
-In this case, we add all points of $B_2$ to $B_1$. Due to invariant (b), $r \leq \delta/2 < \delta^*/2$. 
-So By Lemma \ref{lem:center-point}, $c_p \in B_1^*$ or $c_p \in B_2^*$. By contradiction assume that $c_p \in B_2^*$. In this case, due to invariant (d) part 1 and invariant (b) part 2, $B_2$ covers $B(c_p, \radius{c_p})$ and $2r^* \leq r$. similar to previous part, it contradicts overflow of the buffer. 
+In this case, we add all points of $B_2$ to $B_1$. 
+By invariant (b), $r \leq \delta/2 < \delta^*/2$. 
+Therefore, By Lemma \ref{lem:center-point}, $c_p \in B_1^*$ or $c_p \in B_2^*$. 
+By contradiction, assume that $c_p \in B_2^*$. 
+In this case, due to invariants (d1) and (b2), 
+$B_2$ covers $B(c_p, \radius{c_p})$ and $2r^* \leq r$. 
+Therefore, Similar to the previous part, it contradicts the overflow of the buffer. 
 
-Invariant (d): 
-Due to  Observation \ref{obs:c+4}, if $c_1 \in B_1^*$ and $c_p \in B_2^*$ then $1 \leq \frac{\len{c_1 c_p}}{\delta^*} \leq \frac{\len{c_1 c_p}}{\alpha r^*}$ and as a result $2r^* \leq \radius{c_p}$. If $|B_2| < \dz$ then $c_p = c_2$ and By \Cref{alg:case-1}, $r = \radius{c_2}$, so $2r^* \leq r$.
+Invariant (d1): 
+By Observation \ref{obs:c+4}, if $c_1 \in B_1^*$ and $c_p \in B_2^*$,
+then $1 \leq \frac{\len{c_1 c_p}}{\delta^*} \leq \frac{\len{c_1 c_p}}{\alpha r^*}$,
+and as a result, $2r^* \leq \radius{c_p}$. 
+If $|B_2| < \dz$, then $c_p = c_2$, and By \Cref{alg:case-1}, $r = \radius{c_2}$, hence, $2r^* \leq r$.
+If $|B_2| \ge \dz$, then similar to invariant (b), 
+$$
+	2r^* \leq \radius{c_p} \leq (1 + \frac{2}{\alpha})\radius{c_2} \leq (2 + \frac{2}{\alpha})\radius{c_2} = r.
+$$
 
-If $|B_2| \ge \dz$ then similar to invariant (b): $$2r^* \leq \radius{c_p} \leq (1 + \frac{2}{\alpha})\radius{c_2} \leq (2 + \frac{2}{\alpha})\radius{c_2} = r$$
+Invariant (d2): By invariant (d1), if $c_p \in B_2^*$ then $2r^* \leq r \leq \delta /2$ and $c_p \in B_2$. 
+Now, by invariant (a) and Observation~\ref{obs:intersection}, 
+$B_2$ intersect only $B_2^*$, and hence, $B_2 \cap B_1^* = \emptyset$.
 
-In part 2, due to previous part, if $c_p \in B_2^*$ then $2r^* \leq r \leq \delta /2$ and $c_p \in B_2$. Due to invariant (a) and Observation \ref{obs:intersection}, $B_2$ intersect only with $B_2^*$ and so $B_2 \cap B_1^* = \emptyset$.
-
-In part 3, due to invariant (c) and invariant (d) part 1, $2r^* \leq r \leq \delta/2 < \delta^* /2$. So by Lemma \ref{lem:2r}, all points outside $B_1 \cup B_2$ are outliers.
+Invariant (d3): By invariants (c) and (d1), $2r^* \leq r \leq \delta/2 < \delta^* /2$. 
+Therefore, by Lemma \ref{lem:2r}, all points outside $B_1 \cup B_2$ are outlier.
 
 \end{proof}
 
@@ -888,7 +923,7 @@ The space complexity for this algorithm is derived from the space used by $B_1$,
 
 \begin{proof}
 Our data structures for maintaining $B_1$, $B_2$, and $B_u$
-employ the streaming algorithm of~\cite{zarrabi2009streaming,chan2014streaming}
+employ the streaming algorithm of~\cite{zarrabi2009streaming,chan2014streaming},
 %To maintain an approximation to 1-center with $z$ outliers,
 %we use the streaming algorithm of~\cite{zarrabi2009streaming}
 %which combined with the %current best streaming algorithm for 1-center~\cite{chan2014streaming},
@@ -952,7 +987,7 @@ to make sure that at any time, at least one of the instances is in a correct sta
     \draw[edge] (\from) to (\to);
 
 \end{tikzpicture}
-\caption{State diagram for the KA algorithm.
+\caption{State diagram of the KA algorithm.
 Labels are taken from \cite{kim2014improved}.}
 \label{fig:dag}
 \end{figure}
@@ -1054,9 +1089,9 @@ For space complexity, our algorithm maintains at most two balls in each case, an
 
 \noindent
 As shown in \Cref{sec:estimate}, a desired estimate for $r$ can be
-obtained by adding another level of 
-parallelization that runs $O(1/\eps)$ instances of \Cref{alg:smallc} in parallel.
-
+obtained by running $O(1/\eps)$ instances of \Cref{alg:smallc} in parallel.
+Adding another level of parallelization to remove the assumption of $p_1$
+being a non-outlier, we get the following.
 
 \begin{theorem}
 \label{thm:close-cmplx}
@@ -1125,48 +1160,27 @@ and for their help to improve the quality of this paper.
 
 \appendix 
 
-%\newpage
-\REM{
+%---------------------------- Answering Queries ------------------------
+
+
 \section{Answering Queries}
 
-At any point of the stream, we could be able to answer to a query (give the smallest $\alpha$-separated two congruent balls that covers all points except at most $z$ points).
-Due to Invariants (c), we know that $B_1 \cap B_2^* = \emptyset$. 
-So we are sure that, there exists a point $(B_2 \cup \Buffer) \cap B_2^* \neq \emptyset$.
-In this general case, our candidates $C$ for $c_2$ is set $(B_2 \cup \Buffer) \cap B_2^*$.
+%Using \Cref{alg:case-1},
+In the following, we show how to answer queries of this kind:
+find two $\alpha$-separated congruent balls of minimum radius
+to cover all but at most $z$ points of the stream processed so far.
 
-\begin{lemma}
-\label{lem:B2dz}
-	At any point of the stream, 
-	if $|B_2| \ge \dz$ and $\cp \not\in B_2^*$,
-	then $B_2 \cap B_2^* = \emptyset$.
-\end{lemma}
-
-\begin{proof}
-	due to invariant (b) part 1 and invariant (a) we know that $r \leq \delta/2 < \delta^*/2$. 
-	By Lemma \ref{lem:center-point}, $c_p \in B_1^* \cap B_2^*$. 
-	Since $c_p \not \in B_2^*$, then $c_p \in B_1^*$. 
-	On the other hand, By Observation \ref{obs:intersection}, $B_2$ intersect with at most one of $B_1^*$ and $B_2^*$. So as a result, $B_2 \cap B_2^* = \emptyset$.
-\end{proof}
-
-As a result of Lemma \ref{lem:B2dz}, when $|B_2| \geq \dz$, we are sure that $(\{c_2\} \cup \Buffer) \cap B_2^* \neq \emptyset$. 
-So if $|B_2| \ge \dz$, then our candidates $C$ for $c_2$ are $\{c_2\} \cup \Buffer$. Our Query algorithm, works as follows. 
-
-For each candidate $c \in C$, \Cref{alg:query} constructs $B'_1(c_1, \max \{\delta, \radius{c} \})$ and $B'_2(c, \radius{c})$. 
-First, consider the candidate $c$ that equals to current $c_2$, then $B_1 = B'_1$. 
-Since $\radius{c_2} \leq r \leq \delta/2$ (invariant (b) part 1) and $B'_2 \subset B_2$ then we don't need to construct any new set. 
-In general case, when $c \neq c_2$, we know that $B_1 \subset B'_1$, so we just need to see which of $\Buffer \cap B_2$ points located in $B'_1$.
-When $|B_2| \geq \dz$ and $c \neq c_2$, then it means that assumed $c_p \not \in B_2^*$. So By Lemma \ref{lem:B2dz}, $B_2$ can be added to $B'_1$ without contradicting invariant (c). 
-So in this case, just need to see which points of $\Buffer$ should be added to $B'_1$. 
-\Cref{alg:query} use functions \textproc{AddToB$'_1$} and \textproc{AddToB$'_2$} for adding a point to $B'_1$ and $B'_2$ respectively. 
-Their definition are totally same as functions \textproc{AddToB$_1$} and \textproc{AddToB$_2$} except that, they add point to $B'_i$ instead of $B_i$($i = 1, 2$).
-
-As \Cref{alg:query}, consider all valid cases of $c$, for one of $c \in C$, $c \in B_2^*$. 
-Consider that $c$ as $c^*$ and corresponding $B'_1$ and $B'_2$ as $B''_1$ and $B''_2$. 
-Since $1 \leq \frac{\len{c_1 c^*}}{\alpha^*} < \frac{\len {c_1 c^*}}{\alpha r^*}$(By Observation \ref{obs:c+4}) then $2r^* \leq \radius{c^*}$ and as a result $B^*_1 \subset B''_1$ and $B^*_2 \subset B''_2$ (By Lemma \ref{lem:2r}).
-On the other hand, due to invariant (c) and distance of new points added to $B''_1$ compare to $B_1$ is less than $\len{c_1 p} \leq \max \{\delta, \radius{c^*} \}$, so $B''_1 \cap B_2^* = \emptyset$.
-As a result $B''_1$ and $B''_2$ totally covers $B_1^*$  and $B_2^*$ respectively, with some extra outlier points and remaining points in $\Buffer$ are certainly outliers.
-The only unknown part is that \Cref{alg:query} does not know how many outliers are in $B''_1$ and $B''_2$.
-So \Cref{alg:compute-min} tries all possible cases and choose the one with the minimum radius.
+Our query algorithm is presented in \Cref{alg:query}.
+The idea behind the algorithm is as follows.
+By our initial assumption about $p_1$ and by invariants (c), 
+we know that $B_1$ completely contains $B_1^*$.
+%because $B_1 \cap B_2^* = \emptyset$ . 
+But for $B_2$, it might be the case that our assumption about $c_2$ 
+was incorrect, and therefore, $B_2$ may not completely contain $B_2^*$. 
+The overcome this, we try all possible candidates for $c_2$,
+and compute, for each possible combinations of 
+$B_1$, $B_2$, and Buffer, the best solution for 2-center with $z$ outliers
+using function \textproc{ComputeMin} presented in \Cref{alg:compute-min}.
 
 \begin{algorithm}
 \caption{\sc Query} 
@@ -1217,7 +1231,65 @@ So \Cref{alg:compute-min} tries all possible cases and choose the one with the m
 \end{algorithmic}
 \end{algorithm}
 
-}
+
+Now, we show that the query algorithm correctly considers all possible candidates for $c_2$.
+Let $C$ denotes the set of candidate points for $c_2$.
+By invariants (c), we know that $B_1 \cap B_2^* = \emptyset$. 
+Therefore, $(B_2 \cup \Buffer) \cap B_2^* \neq \emptyset$,
+and hence, $C \subseteq (B_2 \cup \Buffer) \cap B_2^*$. % in general.
+We now use the following lemma.
+%In this general case, our candidates $C$ for $c_2$ is set $(B_2 \cup \Buffer) \cap B_2^*$.
+
+\begin{lemma}
+\label{lem:B2dz}
+	At any time, 
+	if $|B_2| \ge \dz$ and $\cp \not\in B_2^*$,
+	then $B_2 \cap B_2^* = \emptyset$.
+\end{lemma}
+
+\begin{proof}
+	By invariants (a) and (b1), we know that $r \leq \delta/2 < \delta^*/2$. 
+	By Lemma~\ref{lem:center-point}, $c_p \in B_1^* \cap B_2^*$. 
+	Since $c_p \not \in B_2^*$, then $c_p \in B_1^*$. 
+	On the other hand, by Observation~\ref{obs:intersection}, 
+	$B_2$ intersect at most one of $B_1^*$ and $B_2^*$. 
+	Therefore, $B_2 \cap B_2^* = \emptyset$.
+\end{proof}
+
+\noindent
+By Lemma \ref{lem:B2dz}, when $|B_2| \geq \dz$, 
+we known that $(\{c_2\} \cup \Buffer) \cap B_2^* \neq \emptyset$. 
+Therefore, if $|B_2| \ge \dz$, then our candidates for $C$ are $\{c_2\} \cup \Buffer$. 
+
+Our query algorithm works as follows. 
+For each candidate point $c \in C$, \Cref{alg:query} 
+constructs $B'_1(c_1, \max \{\delta, \radius{c} \})$ and $B'_2(c, \radius{c})$. 
+If the candidate $c$ equals to current $c_2$, then, $B_1 = B'_1$. 
+Since $\radius{c_2} \leq r \leq \delta/2$ by invariant (b1) and $B'_2 \subset B_2$,
+we do not need to construct any new set. 
+For $c \neq c_2$, we know that $B_1 \subset B'_1$, and hence,
+we just need to see which points in $\Buffer \cap B_2$ are located in $B'_1$.
+When $|B_2| \geq \dz$ and $c \neq c_2$, then it means that assumed $c_p \not \in B_2^*$. 
+Therefore, by Lemma \ref{lem:B2dz}, $B_2$ can be added to $B'_1$ without contradicting invariant (c). 
+So in this case, we just need to see which points of $\Buffer$ must be added to $B'_1$. 
+\Cref{alg:query} use functions \textproc{AddToB$'_1$} and \textproc{AddToB$'_2$} for adding a point to $B'_1$ and $B'_2$ respectively. 
+The definition of these functions are the same as \textproc{AddToB$_1$} and \textproc{AddToB$_2$},
+except that, they add point to $B'_i$ instead of $B_i$ ($i = 1, 2$).
+
+Since \Cref{alg:query} considers all valid candidates for $c$, 
+at least for one $c^* \in C$, we have $c^* \in B_2^*$. 
+We call the corresponding $B'_1$ and $B'_2$ by $B''_1$ and $B''_2$. 
+Since by Observation \ref{obs:c+4},
+$1 \leq \frac{\len{c_1 c^*}}{\alpha^*} < \frac{\len {c_1 c^*}}{\alpha r^*}$, 
+we have $2r^* \leq \radius{c^*}$, and therefore,
+$B^*_1 \subset B''_1$ and $B^*_2 \subset B''_2$ by Lemma~\ref{lem:2r}.
+On the other hand, since the distance of the new points added to $B''_1$ compare to $B_1$ is less than $\len{c_1 p} \leq \max \{\delta, \radius{c^*} \}$, 
+we have by invariant (c) that  $B''_1 \cap B_2^* = \emptyset$.
+As a result $B''_1$ (resp., $B''_2$) completely covers $B_1^*$  (resp., $B_2^*$), 
+and points in $\Buffer$ are certainly outliers.
+The only unknown part is that \Cref{alg:query} does not know how many outliers are in $B''_1$ and $B''_2$.
+Therefore, \Cref{alg:compute-min} tries all possible cases and choose the one with the minimum radius.
+
 
 % --------------------------- Estimating r ----------------------
 
@@ -1226,7 +1298,7 @@ So \Cref{alg:compute-min} tries all possible cases and choose the one with the m
 \section{Estimating $r$}
 \label{sec:estimate}
 
-In this section, we describe how to obtain a value $r$,
+In this section, we show how to obtain a value $r$,
 such that $1.2r^* \le r < (1.2 + 2\eps/3)r^*$.
 The following lemma provides the main ingredient.
 
@@ -1258,7 +1330,7 @@ Therefore, it is a feasible solution for the 1-center problem with $z$ outliers.
 Hence, $ r_1^* \le \left(2 + \frac{\alpha}{2}\right) r^*$.
 \end{proof}
 
-\begin{figure}[th]
+\begin{figure}[t]
 	\centering
 	\includegraphics[width=19em]{figs/2lt1}
 	\caption{Proof of Lemma~\ref{lem:2-approx}}
@@ -1288,6 +1360,7 @@ the $i$-th point, $p_i$.
 Clearly, the sequence of $r_i$'s is increasing.
 %We use a doubling strategy, similar o what is used in~\cite{zarrabi2008core}.
 Let $k$ be an integer such that $2^{k-1} \le r_i \le 2^{k}$, and set $\ell_i = 2^{k}$.
+(If $r_i = 0$, we set $\ell_i = 0$.)
 %Let $l_1=r_1$ and $l_i=2^j l_1$, where $l_i$ is the smallest number satisfying $l_i \ge r_i$. 
 Obviously, $\ell_i \le 2 r_i$,
 and hence, by Corollary~\ref{cor:4-approx}, 
@@ -1326,17 +1399,22 @@ then we have $r \ge 1.2 \ell_{i - 1} \ge \ell_{i-1}$.
 %To overcome this problem, note that if the candidate $x_j=j \times t_i \in L_i$ is also in $L_{i-1}$, there is no need to start Algorithm~\ref{alg:smallc} over and the current execution will be continued. If $x_j \notin L_{i-1}$, then it is certain that $x_j \ge l_{i - 1}$ (Observe that $l_i=ul_{i-1}$, for some $u\in \mathbb{N}$). 
 Since those points not lying in the candidate solution 
 are saved in the buffer of Algorithm~\ref{alg:1-center} (which has size at most $z$), 
-all non-outlier points of this algorithm lie in the candidate balls of Algorithm~\ref{alg:smallc} which has center $p_1$ and radius $l_{i-1}$. 
+all non-outlier points of this algorithm lie in the candidate balls of Algorithm~\ref{alg:smallc} which has center $p_1$ and radius at most $l_{i-1}$. 
 These outliers have been stored in a buffer. 
-Since Algorithm~\ref{alg:smallc} maintains two balls with radius at least $r$, which one of them (say $B_1$) has center $p_1$, then all non-outlier points of Algorithm~\ref{alg:1-center} are in $B_1$ and so they do not make transition in Algorithm~\ref{alg:smallc} states.
-Therefore, for a new value $r$, 
-it suffices to execute Algorithm~\ref{alg:smallc} with only the outlier points in Algorithm~\ref{alg:1-center}.
+Since Algorithm~\ref{alg:smallc} maintains two balls with radius at least $r$, 
+one of which (say $B_1$) is centered at $p_1$, 
+then all non-outlier points of Algorithm~\ref{alg:1-center} are in $B_1$,
+and hence, they do not make any transition in the states of Algorithm~\ref{alg:smallc}.
+Therefore, for any new value $r$, 
+it suffices to execute Algorithm~\ref{alg:smallc} with only the 
+outlier points in the buffer of Algorithm~\ref{alg:1-center}.
 %Overall, we get the following result.
 
 %\begin{theorem}
 %\label{thm:1st-cmplx}
 %Algorithm~\ref{alg:smallc} uses $\O(\frac{dz^3}{\eps})$ space, and takes $\O(\frac{dz^4}{\eps})$ and $\O(\frac{dz^3}{\eps})$ time for update and query, respectively.
 %\end{theorem}
+
 
 
 \end{document}
