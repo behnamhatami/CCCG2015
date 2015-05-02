@@ -1326,10 +1326,11 @@ then we have $r \ge 1.2 \ell_{i - 1} \ge \ell_{i-1}$.
 %To overcome this problem, note that if the candidate $x_j=j \times t_i \in L_i$ is also in $L_{i-1}$, there is no need to start Algorithm~\ref{alg:smallc} over and the current execution will be continued. If $x_j \notin L_{i-1}$, then it is certain that $x_j \ge l_{i - 1}$ (Observe that $l_i=ul_{i-1}$, for some $u\in \mathbb{N}$). 
 Since those points not lying in the candidate solution 
 are saved in the buffer of Algorithm~\ref{alg:1-center} (which has size at most $z$), 
-all non-outlier points of this algorithm lie in the candidate balls of Algorithm~\ref{alg:smallc}. 
+all non-outlier points of this algorithm lie in the candidate balls of Algorithm~\ref{alg:smallc} which has center $p_1$ and radius $l_{i-1}$. 
 These outliers have been stored in a buffer. 
+Since Algorithm~\ref{alg:smallc} maintains two balls with radius at least $r$, which one of them (say $B_1$) has center $p_1$, then all non-outlier points of Algorithm~\ref{alg:1-center} are in $B_1$ and so they do not make transition in Algorithm~\ref{alg:smallc} states.
 Therefore, for a new value $r$, 
-it suffices to execute Algorithm~\ref{alg:smallc} with only the outlier points in $B_1$.
+it suffices to execute Algorithm~\ref{alg:smallc} with only the outlier points in $B_1$,.
 %Overall, we get the following result.
 
 %\begin{theorem}
