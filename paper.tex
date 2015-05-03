@@ -132,7 +132,7 @@
 % ---------------------- Abstract --------------------------------------
 
 \begin{abstract}
-We study the Euclidean 2-center problem with outliers in the data stream model. 
+We study the 2-center problem with outliers in high-dimensional data streams. 
 Given a stream of points in arbitrary $d$ dimensions, the goal is to find two congruent balls 
 of minimum radius covering all but $z$ points. 
 We provide a $(1.8+\eps)$-approximation streaming algorithm for the problem, 
@@ -164,10 +164,10 @@ See \Cref{fig:definition} for an example.
 %One of $k$-center problem variants is $k$-center with $z$-outlier which finds $k$ congruent balls with minimum radius covering all but $z$ points of a point set. 
 
 In this paper, we focus on the \emph{data stream} model of computation
-in which only a single pass over input is allowed,
+where only a single pass over input is allowed,
 and we have only a limited amount of working space available.
 %which is typically sublinear in the input size.
-This model is specially useful for processing large data sets,
+This model is in particular useful for processing large data sets,
 as it does not require the entire data set to be stored in memory.
 
 %In this model, input data arrives as a sequence over time, 
@@ -186,7 +186,7 @@ The Euclidean $k$-center problem has been extensively studied in the literature.
 %There is a considerable amount of work on the geometric $k$-center problem.
 If $k$ is part of the input,
 the problem in known to be NP-hard in two and more dimensions~\cite{fowler1981optimal},
-and is even hard to approximate to within a factor close to 2, 
+and is even hard to approximate to within a factor better than $1.82$, 
 unless P$\,=\,$NP~\cite{feder1988optimal}.
 Factor-2 approximation algorithms are available for the problem 
 in any dimension~\cite{gonzalez1985clustering,feder1988optimal}.
@@ -215,7 +215,7 @@ $\O(n z^{7} \log^3 z)$-time algorithm for 2-center with $z$ outliers in the plan
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=13em]{figs/definition}
-	\caption{An example of $2$-center with 6 outliers}
+	\caption{An example of $2$-center with 6 outliers.}
 	\label{fig:definition}
 	\vspace{-.5em}
 \end{figure}
@@ -287,8 +287,8 @@ which has an approximation factor of $4+\eps$.
 The approximation factor of our algorithm matches
 that of the best streaming algorithm for the 2-center problem without outliers.
 This is somewhat surprising, considering that 
-the best current approximation factors for streaming $k$-center with and without outliers 
-differ by a factor of $\sqrt{2}$ for $k=1$,
+the current best approximation factors for streaming $k$-center with and without outliers 
+differ by a multiplicative factor of $\sqrt{2}$ for $k=1$,
 and by a factor of 2  for general~$k$. %the 1-center problem.
 See \Cref{table:summary} for a comparison.
 
@@ -376,7 +376,7 @@ will be used extensively in the rest of the paper.
 The pseudocode is provided in \Cref{alg:1-center}.
 The algorithm receives as input a stream of points, $P$,
 and the number of outliers, $z$.
-It also assumes that the first point $p_1$ of the stream is non-outlier.
+It assumes that the first point $p_1$ of the stream is non-outlier.
 We will show later how to remove this assumption.
 The algorithm returns a ball $B$ covering all but at most $z$ points of $P$.
 %
@@ -405,7 +405,8 @@ The algorithm returns a ball $B$ covering all but at most $z$ points of $P$.
 \label{alg:1-center}
 \begin{algorithmic}[1]
 	%\STATE {$\triangleright$ $c$ is a non-outlier point in the optimal solution}
-	\STATE $B \gets B(p_1, 0)$
+	\STATE $c \gets$ the first point in $P$
+	\STATE $B \gets B(c, 0)$
 	\STATE $Q \gets \emptyset$
 	\FORALL {$p$ in $P$}
 		\IF {$p \notin B$}
@@ -442,7 +443,7 @@ The algorithm returns a ball $B$ covering all but at most $z$ points of $P$.
 
 \begin{proof}
 Let $B^*(c^*, r^*)$ be the optimal solution,
-and $c = p_1$ be a non-outlier point in the optimal solution.
+and $c$ be a non-outlier point in the optimal solution.
 Since $c$ is covered by $B^*$,
 for all points $p \in B^*$, we have
 $\len{cp} \le \len{cc^*} + \len{c^*p} \le 2r^*$.
@@ -790,17 +791,17 @@ $\cp$ is the centerpoint of the first $\dz$ points currently in~$B_2$.
 
 \begin{enumerate}
 \item [(a)] $\delta < \delta^*$ %$\delta$ is a lower bound of $\delta^*$
-\item [(b)] if $c_2$ is set, then
-\begin{enumerate}
-	\item[1.] $r \leq \delta/2$
-	\item[2.] $B(c_p, \radius{c_p}) \subseteq B_2(c_2, r)$
-\end{enumerate}
+\item [(b)] $r \leq \delta/2$
+%\begin{enumerate}
+%	\item[1.] $r \leq \delta/2$
+%	\item[2.] $B(c_p, \radius{c_p}) \subseteq B_2(c_2, r)$
+%\end{enumerate}
 \item [(c)] $B_1 \cap B_2^* = \emptyset$
 \item [(d)]  if $\cp \in B_2^*$, then 
 	\begin{enumerate}
 		\item [1.] $2r^* \le r$
 		\item [2.] $B_2 \cap B_1^* = \emptyset$
-		\item [3.] all points in $\Buffer$ are outliers
+		\item [3.] all points in $\Buffer$ are outlier
 	\end{enumerate}
 
 \end{enumerate}
@@ -819,12 +820,7 @@ implies that $\delta < \delta^*$.
 %Note that if less than $z+1$ points have been processed so far,
 %then $\delta = 0$, and hence, the invariant holds.
 
-Invariant (b1): 
-%When an appropriate candidate for $c_2$ is found by Algorithm~\ref{alg:case-1}, 
-%$c_2$ is set to that candidate point,
-%and $\rc$ is set to $\frac{2}{\alpha}\len{c_1c_2}$.
-%After that, points are added to $B_2$ by function \textproc{AddToB$_2$}
-%only if they are within $\rc$-radius of $c_2$. 
+Invariant (b): 
 When $c_2$ is set by Algorithm~\ref{alg:case-1}, 
 it is the $(z+1)$-furthest point from $c_1$ in a set $T \subseteq P$,
 and $\rc$ is set to $\frac{2}{\alpha}\len{c_1c_2}$.
@@ -836,10 +832,14 @@ and hence,
 $$
 	r \leq (2 + \frac{2}{\alpha})\radius{c_2} \leq 3 \times \radius{c_2}  \leq \delta /2,
 $$
-which means that after increasing $r$ by \textproc{AddToB$_2$},
-the invariant still holds.
+which means that the invariant holds, 
+even after increasing $r$ by function \textproc{AddToB$_2$}.
 
-Invariant (b2): If $|B_2| < \dz$, then $c_p = c_2$ and $r = \radius{c_2}$, 
+
+Invariant (c): 
+We first claim that if $c_2$ is set, then
+$B(c_p, \radius{c_p}) \subseteq B_2(c_2, r)$.
+If $|B_2| < \dz$, then $c_p = c_2$ and $r = \radius{c_2}$, 
 and hence, $B_2 = B(c_p, \radius{c_p})$. 
 When the size of $B_2$ reaches $\dz$, 
 the central point $\cp$ moves to the centerpoint of $B_2$,
@@ -851,7 +851,7 @@ $$
 $$ 
 Therefore, $B(c_p, \radius{c_p}) \subseteq B_2(c_2, \radius{c_2}(2 + \frac{2}{\alpha}))$.
 
-Invariant (c): A point $p$ can be added to $B_1$ in two cases. % by \Cref{alg:case-1}. 
+A point $p$ can be added to $B_1$ in two cases. % by \Cref{alg:case-1}. 
 The first case is in function \textproc{AddToB$_1$}, 
 where the point is added to $B_1$ only if it is within distance $\delta$ of the center $c_1$,  
 %when $\len{pc_1} \leq \delta$, 
@@ -861,7 +861,8 @@ guaranties $\len{pc_1} < \delta^*$. Therefore, $p \not \in B_2^*$ in this case.
 The second case is in \Cref{alg:case-1}, when the buffer overflows and $B_2$ is non-empty.
 The algorithm takes one of the following actions depending on the size of $B_2$.
 If $|B_2| < \dz $, then $c_2 = c_p$. \Cref{alg:case-1} add $c_2$ to $B_1$.
-By contradiction assume that $c_p \in B_2^*$, then due to invariants (b1) and (d1), 
+By contradiction assume that $c_p \in B_2^*$, 
+then by invariants (b) and (d1), 
 $2r^* \leq r \leq \delta/2 < \delta^*/2$. 
 Therefore, by Lemma \ref{lem:2r}, there must be at most $z$ points outside $B_1 \cup B_2$,
 which contradicts the overflow of the buffer. 
@@ -869,8 +870,8 @@ If $|B_2| \geq \dz$, then $c_p$ is the centerpoint of the first $\dz$ points cur
 In this case, we add all points of $B_2$ to $B_1$. 
 By invariant (b), $r \leq \delta/2 < \delta^*/2$. 
 Therefore, By Lemma \ref{lem:center-point}, $c_p \in B_1^*$ or $c_p \in B_2^*$. 
-By contradiction, assume that $c_p \in B_2^*$. 
-In this case, due to invariants (d1) and (b2), 
+Suppose by way of contradiction that $c_p \in B_2^*$. 
+In this case, by invariant (d1) and the claim we proved first,
 $B_2$ covers $B(c_p, \radius{c_p})$ and $2r^* \leq r$. 
 Therefore, Similar to the previous part, it contradicts the overflow of the buffer. 
 
@@ -878,10 +879,12 @@ Invariant (d1):
 By Observation \ref{obs:c+4}, if $c_1 \in B_1^*$ and $c_p \in B_2^*$,
 then $1 \leq \frac{\len{c_1 c_p}}{\delta^*} \leq \frac{\len{c_1 c_p}}{\alpha r^*}$,
 and as a result, $2r^* \leq \radius{c_p}$. 
-If $|B_2| < \dz$, then $c_p = c_2$, and By \Cref{alg:case-1}, $r = \radius{c_2}$, hence, $2r^* \leq r$.
+If $|B_2| < \dz$, then $c_p = c_2$, and by \Cref{alg:case-1}, 
+$r = \radius{c_2}$, and therefore, $2r^* \leq r$.
 If $|B_2| \ge \dz$, then similar to invariant (b), 
 $$
-	2r^* \leq \radius{c_p} \leq (1 + \frac{2}{\alpha})\radius{c_2} \leq (2 + \frac{2}{\alpha})\radius{c_2} = r.
+	2r^* \leq \radius{c_p} \leq (1 + \frac{2}{\alpha})\radius{c_2} 
+	\leq (2 + \frac{2}{\alpha})\radius{c_2} = r.
 $$
 
 Invariant (d2): By invariant (d1), if $c_p \in B_2^*$ then $2r^* \leq r \leq \delta /2$ and $c_p \in B_2$. 
@@ -894,13 +897,6 @@ Therefore, by Lemma \ref{lem:2r}, all points outside $B_1 \cup B_2$ are outlier.
 \end{proof}
 
 %\paragraph{Streaming Model}
-To implement our algorithm in the streaming model,
-we maintain the sets $B_1$ and $B_2$ 
-in a data structure that supports adding points,
-and gives a $\beta$-approximation to 1-center with $z$ outliers. %, for $k=0,\dots,z$.
-Moreover, we maintain a set $B_u = B_1 \cup B_2$ in a similar data structure.
-Note that these data structures do not need to maintain all the points. 
-They only need to have a buffer of size $\dz$ that keeps the most recently added points.
 
 \REM{
 Suppose that our data structure for maintaining $B_1$, $B_2$ and $B_u$ uses $S(n,z,d)$ space, $T(n,z,d)$ update and $Q(n,z,d)$ query time. Note that by $Q_{o}(zd,z,d)$ we mean the query time for the offline 1-center problem with $z$ outlier in $d$ dimensions. The best known algorithm for 1-center without outliers is $1.22$-approximation by~\cite{chan2014streaming, agarwal2010streaming}. The buffering framework introduced in~\cite{zarrabi2009streaming} with $\O(dz^3 + (\frac{d}{\eps^3})\log(\frac{1}{\eps}))$ space complexity, can be used with this algorithm as subroutine to achieve a $(1.22\sqrt{2})$-approximation ($1.22\sqrt{2} < 1.8$) for 1-center problem with outliers.
@@ -923,15 +919,26 @@ The space complexity for this algorithm is derived from the space used by $B_1$,
 
 \begin{proof}
 Our algorithm for answering queries is provided in ~\Cref{sec:query}.
+It uses the current partition $B_1$, $B_2$, and Buffer, to compute
+an optimal solution to 2-center with $z$ outliers.
+In the streaming model, we cannot afford keeping all the points of $B_1$ and $B_2$. 
+%To implement our algorithm in the streaming model,
+Therefore, we maintain the sets $B_1$ and $B_2$ 
+in a data structure that supports adding points,
+and gives a $\beta$-approximation to 1-center with $k$ outliers, for $k=0,\dots,z$.
+Moreover, we maintain a set $B_u = B_1 \cup B_2$ in a similar data structure.
+Note that these data structures do not need to maintain all the points. 
+They only need to have a buffer of size $\dz$ to keep the most recently added points.
+
 To maintain $B_1$, $B_2$, and $B_u$, we 
 use the streaming algorithm of~\cite{zarrabi2009streaming,chan2014streaming},
 %To maintain an approximation to 1-center with $z$ outliers,
 %we use the streaming algorithm of~\cite{zarrabi2009streaming}
 %which combined with the %current best streaming algorithm for 1-center~\cite{chan2014streaming},
 %result of~\cite{chan2014streaming},
-which has an approximation factor of $1.22 \times \sqrt{2} <1.8$.
+which provides an approximation factor of $1.22 \times \sqrt{2} <1.8$.
 %The algorithm of~\cite{zarrabi2009streaming}
-The algorithm has $O(d^3z)$ space and $\poly(d,z)$ update time.
+The algorithm uses $O(d^3z)$ space and has $\poly(d,z)$ update time.
 %which implies the same bounds for \Cref{alg:case-1}.
 Since we need to run $z + 1$ instances of \Cref{alg:case-1} in parallel, 
 the space and update time are multiplied by a factor of~$z$.
@@ -1068,9 +1075,11 @@ Kim and Ahn~\cite{kim2014improved} proved that in all feasible solutions
 computed this way,
 the larger ball among $B_1$ and $B_2$ has radius at most $3/2r$,
 provided $\delta^* \le \alpha r^*$.
+(Their proof is stated for $\alpha = 2$, 
+but can be extended to any $\alpha \ge 2$.)
 Assuming that we have a good estimate $r$ satisfying
 $1.2r^* \le r < (1.2 + 2\eps/3)r^*$,
-we get the following result.
+we get the following.
 
 \begin{theorem} \label{thm:close}
 	For $1.2r^* \le r < (1.2 + {2 \over 3}\eps)r^*$ and $\delta^* \le \alpha r^*$,
@@ -1104,8 +1113,8 @@ being a non-outlier, we get the following.
 %\subsection{Final Result}
 
 \noindent
-Putting all together, we get the following result
-from Theorems~\ref{thm:far-cmplx} and~\ref{thm:close-cmplx}:
+Theorems~\ref{thm:far-cmplx} and~\ref{thm:close-cmplx}
+together yield the following main result of the paper.
 
 \begin{theorem} \label{thm:1-center-stream}
 	Given a stream of points in $d$ dimensions,
@@ -1182,13 +1191,13 @@ using the \textproc{MinCover} function presented in \Cref{alg:compute-min}.
 
 \begin{algorithm}
 \caption{\sc Query} 
-\algsetup{indent=1.5em}
+\algsetup{indent=1.2em}
 \label{alg:query}
 \begin{algorithmic}[1]
 	%\STATE solutions $\gets \set{\Call{MinCover}{B_1, B_2, \Buffer}}$
 	\STATE solutions $\gets \set{}$
 	
-	\STATE candidates $\gets \Buffer \cup B_2$
+	\STATE candidates $\gets B_2 \cup \Buffer$
 	\IF {$\card{B_2} \ge \dz$}
 		\STATE candidates $\gets \set{c_2} \cup \Buffer $
 		\STATE $B_1 \gets B_1 \cup B_2$
@@ -1252,7 +1261,7 @@ we only need to consider $\{c_2\} \cup \Buffer$ as candidates for $C$.
 \end{lemma}
 
 \begin{proof}
-	By invariants (a) and (b1), we know that $r \leq \delta/2 < \delta^*/2$. 
+	By invariants (a) and (b), we know that $r \leq \delta/2 < \delta^*/2$. 
 	By Lemma~\ref{lem:center-point}, $c_p \in B_1^* \cap B_2^*$. 
 	Since $c_p \not \in B_2^*$, then $c_p \in B_1^*$. 
 	On the other hand, by Observation~\ref{obs:intersection}, 
@@ -1265,7 +1274,7 @@ Our query algorithm works as follows.
 For each candidate point $c \in C$, \Cref{alg:query} 
 constructs $B'_1(c_1, \max \{\delta, \radius{c} \})$ and $B'_2(c, \radius{c})$. 
 If the candidate $c$ equals the current $c_2$, then, $B_1 = B'_1$. 
-Since $\radius{c_2} \leq r \leq \delta/2$ by invariant (b1) and $B'_2 \subset B_2$,
+Since $\radius{c_2} \leq r \leq \delta/2$ by invariant (b) and $B'_2 \subset B_2$,
 we do not need to construct any new set. 
 For $c \neq c_2$, we know that $B_1 \subset B'_1$, and hence,
 we just need to see which points in $\Buffer \cap B_2$ are located in $B'_1$.
