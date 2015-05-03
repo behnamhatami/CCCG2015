@@ -1179,11 +1179,11 @@ to cover all but at most $z$ points of the stream processed so far.
 
 Our query algorithm is presented in \Cref{alg:query}.
 The idea behind the algorithm is as follows.
-By our initial assumption about $p_1$ and by invariants (c), 
-we know that $B_1$ completely contains $B_1^*$.
+By our initial assumption about $p_1$ and  by invariants (c) and (d), if $c_p \in B_2^*$ 
+we know that $B_1$ (resp., $B_2$) completely contains $B_1^*$  (resp., $B_2^*$).
 %because $B_1 \cap B_2^* = \emptyset$ . 
-But for $B_2$, it might be the case that our assumption about $c_2$ 
-was incorrect, and therefore, $B_2$ may not completely contain $B_2^*$. 
+But it might be the case that our assumption about $c_p$ 
+was incorrect, and therefore, $B_1$ (resp., $B_2$) may not completely contain $B_1^*$ (resp., $B_2^*$). 
 To overcome this issue, we try all possible candidates for $c_2$,
 and compute, for each possible combinations of 
 $B_1$, $B_2$, and Buffer, the best solution for 2-center with $z$ outliers
