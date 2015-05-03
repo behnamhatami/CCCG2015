@@ -1179,13 +1179,16 @@ to cover all but at most $z$ points of the stream processed so far.
 
 Our query algorithm is presented in \Cref{alg:query}.
 The idea behind the algorithm is as follows.
-By our initial assumption about $p_1$ and  by invariants (c) and (d), if $c_p \in B_2^*$ 
-we know that $B_1$ (resp., $B_2$) completely contains $B_1^*$  (resp., $B_2^*$).
+By our initial assumption about $p_1$ and  by invariants (c) and (d), 
+if $c_p \in B_2^*$, then we know that $B_1$ completely contains $B_1^*$,
+and $B_2$ completely contains $B_2^*$.
 %because $B_1 \cap B_2^* = \emptyset$ . 
-But it might be the case that our assumption about $c_p$ 
-was incorrect, and therefore, $B_1$ (resp., $B_2$) may not completely contain $B_1^*$ (resp., $B_2^*$). 
-To overcome this issue, we try all possible candidates for $c_2$,
-and compute, for each possible combinations of 
+However, it might be the case that our assumption about $c_p$ 
+was incorrect, and therefore, $B_1$ (resp., $B_2$) 
+may not completely contain $B_1^*$ (resp., $B_2^*$). 
+To overcome this issue, we try all possible candidates for $c_2$
+(which in turn, determines $c_p$),
+and compute, for each resulting partition of $P$ into 
 $B_1$, $B_2$, and Buffer, the best solution for 2-center with $z$ outliers
 using the \textproc{MinCover} function presented in \Cref{alg:compute-min}.
 
@@ -1246,7 +1249,7 @@ and hence, $C$ is $(B_2 \cup \Buffer) \cap B_2^*$ in general.
 %We now use the following lemma.
 %In this general case, our candidates $C$ for $c_2$ is set $(B_2 \cup \Buffer) \cap B_2^*$.
 However, when $|B_2| \geq \dz$, 
-we show in the following lemma that $(\{c_2\} \cup \Buffer) \cap B_2^* \neq \emptyset$. 
+we will show in the following lemma that $(\{c_2\} \cup \Buffer) \cap B_2^* \neq \emptyset$. 
 Therefore, if $|B_2| \ge \dz$, 
 we only need to consider $\{c_2\} \cup \Buffer$ as candidates for $C$.
 %our candidates for $C$ are only $\{c_2\} \cup \Buffer$. 
