@@ -293,7 +293,7 @@ and by a factor of 2  for general~$k$. %the 1-center problem.
 See \Cref{table:summary} for a comparison.
 
 To obtain our result, we have used a combination of several ideas
-including parallelization construction, far/close ball separation,
+including parallelization construction, far/close ball separation, centerpoint theorem,
 and keeping a lower bound on the radius and distance of the optimal balls.
 We have also utilized ideas used in~\cite{kim2014improved} 
 for the 2-center problem with no outliers.
@@ -1187,19 +1187,19 @@ using function \textproc{ComputeMin} presented in \Cref{alg:compute-min}.
 \algsetup{indent=1.5em}
 \label{alg:query}
 \begin{algorithmic}[1]
-%\Function{Query}{}
-	\STATE solutions $\gets \set{\Call{ComputeMin}{B_1, B_2, \Buffer}}$
+	%\STATE solutions $\gets \set{\Call{ComputeMin}{B_1, B_2, \Buffer}}$
+	\STATE solutions $\gets \set{}$
 	
-	\STATE candidates $\gets \Buffer$
+	\STATE candidates $\gets \set{c_2} \cup \Buffer $
 	\IF {$\card{B_2} < \dz$}
-		\STATE candidates $\gets \Buffer \cup B_2 \setminus \set{c_2}$
+		\STATE add $B_2$ to candidates
 	\ELSE
 		\STATE $B_1 \gets B_u$
 	\ENDIF
 
 	\STATE $\delta_0 = \delta$
-	\FOR{$c_2 \in$ candidates}
-		\STATE $\rc  \gets \frac{2}{\alpha} \len{c_1 c_2}$
+	\FOR{$c \in$ candidates}
+		\STATE $\rc  \gets \frac{2}{\alpha} \len{c_1 c}$
 		\STATE $B'_1 \gets B_1$, $\delta \gets \max \{ \delta_0, r \}$
 		\STATE $B'_2 \gets \emptyset$, $\Buffer' \gets \emptyset$ 
 		\FOR{$p \in$ candidates}
@@ -1232,13 +1232,6 @@ using function \textproc{ComputeMin} presented in \Cref{alg:compute-min}.
 \end{algorithm}
 
 
-Now, we show that the query algorithm correctly considers all possible candidates for $c_2$.
-Let $C$ denotes the set of candidate points for $c_2$.
-By invariants (c), we know that $B_1 \cap B_2^* = \emptyset$. 
-Therefore, $(B_2 \cup \Buffer) \cap B_2^* \neq \emptyset$,
-and hence, $C \subseteq (B_2 \cup \Buffer) \cap B_2^*$. % in general.
-We now use the following lemma.
-%In this general case, our candidates $C$ for $c_2$ is set $(B_2 \cup \Buffer) \cap B_2^*$.
 
 \begin{lemma}
 \label{lem:B2dz}
@@ -1257,9 +1250,16 @@ We now use the following lemma.
 \end{proof}
 
 \noindent
-By Lemma \ref{lem:B2dz}, when $|B_2| \geq \dz$, 
-we known that $(\{c_2\} \cup \Buffer) \cap B_2^* \neq \emptyset$. 
-Therefore, if $|B_2| \ge \dz$, then our candidates for $C$ are $\{c_2\} \cup \Buffer$. 
+%Now, we show that the query algorithm correctly considers all possible candidates for $c_2$.
+Let $C$ denote the set of candidates for $c_2$.
+By invariant~(c), we know that $B_1 \cap B_2^* = \emptyset$. 
+Therefore, there exists a point in $(B_2 \cup \Buffer) \cap B_2^*$,
+and hence, $C$ is $(B_2 \cup \Buffer) \cap B_2^*$ in general.
+%We now use the following lemma.
+%In this general case, our candidates $C$ for $c_2$ is set $(B_2 \cup \Buffer) \cap B_2^*$.
+However, when $|B_2| \geq \dz$, 
+we know by Lemma \ref{lem:B2dz} that $(\{c_2\} \cup \Buffer) \cap B_2^* \neq \emptyset$. 
+Therefore, if $|B_2| \ge \dz$, then our candidates for $C$ are only $\{c_2\} \cup \Buffer$. 
 
 Our query algorithm works as follows. 
 For each candidate point $c \in C$, \Cref{alg:query} 
