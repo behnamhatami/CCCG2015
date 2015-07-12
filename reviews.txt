@@ -1,0 +1,64 @@
+Dear [*NAME],
+
+On behalf of the program committee of CCCG 2015 I am pleased to inform you that your
+submission  A Streaming Algorithm for 2-Center with Outliers in High Dimensions has been accepted.
+
+Please consult the reviews when preparing the final version of your paper which is due by
+July 10, 2015. You will receive a follow-up message within the next few days
+providing detailed instructions for the final submission of your paper.
+
+
+Best regards,
+
+- David Rappaport
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 49
+TITLE: A Streaming Algorithm for 2-Center with Outliers in High Dimensions
+AUTHORS: Behnam Hatami and Hamid Zarrabi-Zadeh
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+This paper was challenging to read. Uses a clever combination of techniques to come up with a
+(1.8 + \epsilon) approximation algorithm.
+
+The buffer management in CenterCase1(P) was hard to follow.
+
+Significance: Good
+
+Correctness: Verified most of the lemmas. Had trouble with Lemma 3. Did not see how " It is clear that B covers P\S".
+
+Originality: Very good
+
+Relevance : Very relevant to this conference
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 49
+TITLE: A Streaming Algorithm for 2-Center with Outliers in High Dimensions
+AUTHORS: Behnam Hatami and Hamid Zarrabi-Zadeh
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+A streaming algorithm for the 2-center problem ignoring a fixed number of outliers is presented. The authors have presented a better approximation bound. Surprisingly, the bound matched the bound for the same problem without the outliers. The algorithm is developed nicely, and the analysis looks correct.
+
+In conclusion, reference [15] should be [6].
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 49
+TITLE: A Streaming Algorithm for 2-Center with Outliers in High Dimensions
+AUTHORS: Behnam Hatami and Hamid Zarrabi-Zadeh
+
+OVERALL EVALUATION: 3 (strong accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+This paper examines the problem of computing a 2-center ignoring outliers for high dimensional data in the streaming model. This paper presents a (1.8+epsilon)-approximate algorithm, improving the previous best result of (4+epsilon)-approximation.
+
+The paper is very well written. The problem is well defined and the discussion of related work is comprehensive.  I particularly liked being eased into the solution with the simple 2-approximate solution. The algorithm is well explained. Overall this is a very nice paper, well above threshold for CCCG.
